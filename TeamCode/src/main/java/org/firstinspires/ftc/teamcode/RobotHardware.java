@@ -35,21 +35,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.openftc.easyopencv.*;
+
 /**
  * This is NOT an opmode.
- *
- * This class can be used to define all the specific hardware for a single robot.
- * In this case that robot is a Pushbot.
- * See PushbotTeleopTank_Iterative and others classes starting with "Pushbot" for usage examples.
- *
- * This hardware class assumes the following device names have been configured on the robot:
- * Note:  All names are lower case and some have single spaces between words.
- *
- * Motor channel:  Left  drive motor:        "left_drive"
- * Motor channel:  Right drive motor:        "right_drive"
- * Motor channel:  Manipulator drive motor:  "left_arm"
- * Servo channel:  Servo to open left claw:  "left_hand"
- * Servo channel:  Servo to open right claw: "right_hand"
  */
 public class RobotHardware
 {
@@ -59,9 +49,10 @@ public class RobotHardware
     public DcMotor  backleft = null;
     public DcMotor  backright = null;
     public DcMotor intake = null;
-    public DcMotor wobble = null;
+    public Servo wobble = null;
     public Servo wobbleFinger = null;
     public ColorSensor greg = null;
+    public OpenCvCamera webcam = null;
     
     /* local OpMode members. */
     HardwareMap hwMap           =  null;
@@ -73,7 +64,7 @@ public class RobotHardware
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap) {
+    public void init(HardwareMap ahwMap, String features) {
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -82,14 +73,15 @@ public class RobotHardware
         frontright  = hwMap.get(DcMotor.class, "frontright");
         backleft  = hwMap.get(DcMotor.class, "backleft");
         backright  = hwMap.get(DcMotor.class, "backright");
-        intake  = hwMap.get(DcMotor.class, "intake");
-        wobble =hwMap.get(Servo.class, "wobble");
-        wobbleFinger = hwMap.get(Servo.class, "wobbleFinger");
-        greg = hwMap.get(ColorSensor.class, "greg");
+        intake  = hwMap.get(DcMotor.class, "intake"); // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
+        wobble = hwMap.get(Servo.class, "wobble"); // Wobble goal actuator arm rotator
+        wobbleFinger = hwMap.get(Servo.class, "wobbleFinger"); // Wobble goal actuator arm "finger" grabber joint servo
+        greg = hwMap.get(ColorSensor.class, "greg"); // Greg is our premier color sensor.
+        //
+        // This space has been left reserved for the firing mechanism devices when they are finished.
+        //
         backleft.setDirection(DcMotor.Direction.REVERSE);
         frontleft.setDirection(DcMotor.Direction.REVERSE);
-        //leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        //rightDrive.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
         
         // Set all motors to zero power
         frontleft.setPower(0);
@@ -97,7 +89,7 @@ public class RobotHardware
         backleft.setPower(0);
         backright.setPower(0);
         intake.setPower(0);
-        wobble.setPositon(0);
+        wobble.setPosition(0);
         wobbleFinger.setPosition(0);
 
         // Set all motors to run without encoders.
@@ -107,12 +99,20 @@ public class RobotHardware
         backleft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wobble.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        // Define and initialize ALL installed servos.
-        //leftClaw  = hwMap.get(Servo.class, "left_hand");
-        //rightClaw = hwMap.get(Servo.class, "right_hand");
-        //leftClaw.setPosition(MID_SERVO);
-        //rightClaw.setPosition(MID_SERVO);
+
+        // Do the OpenCV initialization if it is asked for
+        if(features.contains("webcam")){
+            // We will have to have this commented out until we figure out how to get the webcam on the hardware map
+            //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
+        }
+    }
+    public void init(HardwareMap ahwMap){ // Overload to not make the features parameter required because java is dumb and doesn't allow for something like this already.
+        init(ahwMap, "");
+    }
+
+    public OpenCvCamera startCamera(WebcamName cameraID){ // Not done yet, this only gets the camera instance, but does not start the video streaming
+        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(cameraID);
+        return camera;
     }
  }
 
