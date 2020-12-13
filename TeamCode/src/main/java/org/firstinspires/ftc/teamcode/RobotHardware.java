@@ -41,22 +41,21 @@ import org.openftc.easyopencv.*;
 /**
  * This is NOT an opmode.
  */
-public class RobotHardware
-{
+public class RobotHardware {
     /* Public OpMode members. */
-    public DcMotor  frontleft = null;
-    public DcMotor  frontright = null;
-    public DcMotor  backleft = null;
-    public DcMotor  backright = null;
+    public DcMotor frontleft = null;
+    public DcMotor frontright = null;
+    public DcMotor backleft = null;
+    public DcMotor backright = null;
     public DcMotor intake = null;
     public Servo wobble = null;
     public Servo wobbleFinger = null;
     public ColorSensor greg = null;
     public OpenCvCamera webcam = null;
-    
+
     /* local OpMode members. */
-    HardwareMap hwMap           =  null;
-    private ElapsedTime period  = new ElapsedTime();
+    HardwareMap hwMap = null;
+    private ElapsedTime period = new ElapsedTime();
 
     /* Constructor */
     public RobotHardware() {
@@ -69,11 +68,11 @@ public class RobotHardware
         hwMap = ahwMap;
 
         // Define and Initialize Motors
-        frontleft  = hwMap.get(DcMotor.class, "frontleft");
-        frontright  = hwMap.get(DcMotor.class, "frontright");
-        backleft  = hwMap.get(DcMotor.class, "backleft");
-        backright  = hwMap.get(DcMotor.class, "backright");
-        intake  = hwMap.get(DcMotor.class, "intake"); // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
+        frontleft = hwMap.get(DcMotor.class, "frontleft");
+        frontright = hwMap.get(DcMotor.class, "frontright");
+        backleft = hwMap.get(DcMotor.class, "backleft");
+        backright = hwMap.get(DcMotor.class, "backright");
+        intake = hwMap.get(DcMotor.class, "intake"); // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
         wobble = hwMap.get(Servo.class, "wobble"); // Wobble goal actuator arm rotator
         wobbleFinger = hwMap.get(Servo.class, "wobbleFinger"); // Wobble goal actuator arm "finger" grabber joint servo
         greg = hwMap.get(ColorSensor.class, "greg"); // Greg is our premier color sensor.
@@ -82,7 +81,7 @@ public class RobotHardware
         //
         backleft.setDirection(DcMotor.Direction.REVERSE);
         frontleft.setDirection(DcMotor.Direction.REVERSE);
-        
+
         // Set all motors to zero power
         frontleft.setPower(0);
         frontright.setPower(0);
@@ -101,18 +100,19 @@ public class RobotHardware
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Do the OpenCV initialization if it is asked for
-        if(features.contains("webcam")){
+        if (features.contains("webcam")) {
             // We will have to have this commented out until we figure out how to get the webcam on the hardware map
             //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
         }
     }
-    public void init(HardwareMap ahwMap){ // Overload to not make the features parameter required because java is dumb and doesn't allow for something like this already.
+
+    public void init(HardwareMap ahwMap) { // Overload to not make the features parameter required because java is dumb and doesn't allow for something like this already.
         init(ahwMap, "");
     }
 
-    public OpenCvCamera startCamera(WebcamName cameraID){ // Not done yet, this only gets the camera instance, but does not start the video streaming
+    public OpenCvCamera startCamera(WebcamName cameraID) { // Not done yet, this only gets the camera instance, but does not start the video streaming
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(cameraID);
         return camera;
     }
- }
+}
 

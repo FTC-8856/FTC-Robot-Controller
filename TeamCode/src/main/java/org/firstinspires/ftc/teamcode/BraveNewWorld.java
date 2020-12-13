@@ -5,25 +5,31 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
+
 import org.firstinspires.ftc.robotcore.external.android.AndroidOrientation;
 import org.firstinspires.ftc.robotcore.external.android.AndroidTextToSpeech;
+
 import java.lang.reflect.Array;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
+
 import java.util.Map;
 import java.util.HashMap;
 
-@TeleOp(name="Brave New World", group="Pushbot")
+@TeleOp(name = "Brave New World", group = "Pushbot")
 
-public class BraveNewWorld extends OpMode{
+public class BraveNewWorld extends OpMode {
 
     /* Declare OpMode members. */
     //AndroidOrientation compass(); // Android Orientation Object Declaration
@@ -33,14 +39,15 @@ public class BraveNewWorld extends OpMode{
     Map<DcMotor, Double[]> valueMap = new HashMap<>();
     double wobble_pos = 0;
     double finger_pos = 0;
-    
+
 
     BNO055IMU imu;
     BNO055IMU.Parameters imuParameters;
-        Orientation angles;
-        Acceleration gravity;
-        Acceleration accel;
-        Position pos;
+    Orientation angles;
+    Acceleration gravity;
+    Acceleration accel;
+    Position pos;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -50,9 +57,9 @@ public class BraveNewWorld extends OpMode{
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
-    
+
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-    
+
         // Create new IMU Parameters object.
         imuParameters = new BNO055IMU.Parameters();
         imuParameters.mode = BNO055IMU.SensorMode.IMU;
@@ -90,29 +97,29 @@ public class BraveNewWorld extends OpMode{
     @Override
     public void start() {
     }
-    
+
     private void setPower(DcMotor motor) {
         Double[] values = valueMap.get(motor);
-        double forward_backward = values[0] * gamepad1.right_stick_y; 
+        double forward_backward = values[0] * gamepad1.right_stick_y;
         double strafe = values[1] * gamepad1.right_stick_x;
         double turn = values[2] * gamepad1.left_stick_x;
         double power = forward_backward + strafe + turn;
         motor.setPower(Math.max(-1, Math.min(power, 1)));
     }
-    
-    @Override 
-    public void loop() {         
+
+    @Override
+    public void loop() {
         setPower(robot.frontright);
         setPower(robot.backright);
         setPower(robot.frontleft);
         setPower(robot.backleft);
-        
+
         wobble_pos += 0.01 * gamepad2.left_stick_y;
         robot.wobble.setPosition(wobble_pos);
         finger_pos += 0.02 * gamepad2.left_stick_x;
         robot.wobbleFinger.setPosition(finger_pos);
-        
-        telemetry.addData("fwd/bkwd",  "%.2f", gamepad1.right_stick_y);
+
+        telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x);
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x);
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -126,7 +133,7 @@ public class BraveNewWorld extends OpMode{
      */
     @Override
     public void stop() {
-        telemetry.addData("Exit","Goodest Good Job!");
+        telemetry.addData("Exit", "Goodest Good Job!");
         telemetry.update();
     }
 }
