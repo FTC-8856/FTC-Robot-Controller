@@ -31,12 +31,6 @@ public class BraveNewWorld extends OpMode{
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
     //                      FR BR FL BL
     Map<DcMotor, Double[]> valueMap = new HashMap<>();
-    {                                           //  F/B   L/R   TURN
-        valueMap.put(robot.frontright, new Double[]{1.0, 1.0, 1.0});
-        valueMap.put(robot.backright, new Double[]{-1.0, 1.0, 1.0});
-        valueMap.put(robot.frontleft, new Double[]{-1.0, 1.0, -1.0});
-        valueMap.put(robot.backleft, new Double[]{1.0, 1.0, -1.0});
-    }
     double wobble_pos = 0;
     double finger_pos = 0;
     
@@ -70,6 +64,10 @@ public class BraveNewWorld extends OpMode{
         imuParameters.loggingEnabled = false;
         // Initialize IMU.
         imu.initialize(imuParameters);
+        valueMap.put(robot.frontright, new Double[]{1.0, 1.0, 1.0});
+        valueMap.put(robot.backright, new Double[]{-1.0, 1.0, 1.0});
+        valueMap.put(robot.frontleft, new Double[]{-1.0, 1.0, -1.0});
+        valueMap.put(robot.backleft, new Double[]{1.0, 1.0, -1.0});
     }
 
     /*
