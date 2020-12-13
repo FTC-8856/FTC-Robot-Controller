@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -60,8 +62,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class PushbotAutoDriveByTime_Linear extends LinearOpMode {
 
     /* Declare OpMode members. */
+    @NonNull
+    final
     HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
-    private ElapsedTime     runtime = new ElapsedTime();
+    @NonNull
+    private final ElapsedTime     runtime = new ElapsedTime();
 
 
     static final double     FORWARD_SPEED = 0.6;

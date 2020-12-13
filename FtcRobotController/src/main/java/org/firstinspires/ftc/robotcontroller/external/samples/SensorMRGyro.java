@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -66,13 +68,15 @@ public class SensorMRGyro extends LinearOpMode {
   ModernRoboticsI2cGyro modernRoboticsI2cGyro;
 
   // A timer helps provide feedback while calibration is taking place
+  @NonNull
+  final
   ElapsedTime timer = new ElapsedTime();
 
   @Override
   public void runOpMode() {
 
     boolean lastResetState = false;
-    boolean curResetState  = false;
+    boolean curResetState;
 
     // Get a reference to a Modern Robotics gyro object. We use several interfaces
     // on this object to illustrate which interfaces support which functionality.
@@ -147,14 +151,17 @@ public class SensorMRGyro extends LinearOpMode {
     }
   }
 
+  @NonNull
   String formatRaw(int rawValue) {
     return String.format("%d", rawValue);
   }
 
+  @NonNull
   String formatRate(float rate) {
     return String.format("%.3f", rate);
   }
 
+  @NonNull
   String formatFloat(float rate) {
     return String.format("%.3f", rate);
   }

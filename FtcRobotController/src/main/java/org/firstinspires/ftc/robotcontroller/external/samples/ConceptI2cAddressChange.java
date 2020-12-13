@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsUsbDeviceInterfaceModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -79,18 +81,22 @@ public class ConceptI2cAddressChange extends LinearOpMode {
   public static final int BUFFER_CHANGE_ADDRESS_LENGTH = 0x03;
 
   // The port where your sensor is connected.
-  int port = 5;
+  final int port = 5;
 
   byte[] readCache;
   Lock readLock;
   byte[] writeCache;
   Lock writeLock;
 
+  @NonNull
+  final
   I2cAddr currentAddress = IR_SEEKER_V3_ORIGINAL_ADDRESS;
   // I2c addresses on Modern Robotics devices must be divisible by 2, and between 0x7e and 0x10
   // Different hardware may have different rules.
   // Be sure to read the requirements for the hardware you're using!
   // If you use an invalid address, you may make your device completely unusable.
+  @NonNull
+  final
   I2cAddr newAddress = I2cAddr.create8bit(0x42);
 
   DeviceInterfaceModule dim;
@@ -114,7 +120,7 @@ public class ConceptI2cAddressChange extends LinearOpMode {
     // wait for the start button to be pressed
     waitForStart();
 
-    performAction("read", port, currentAddress, ADDRESS_MEMORY_START, TOTAL_MEMORY_LENGTH);
+    performAction("read", currentAddress, ADDRESS_MEMORY_START, TOTAL_MEMORY_LENGTH);
 
     while(!dim.isI2cPortReady(port)) {
       telemetry.addData("I2cAddressChange", "waiting for the port to be ready...");
@@ -128,7 +134,7 @@ public class ConceptI2cAddressChange extends LinearOpMode {
     // make sure the first bytes are what we think they should be.
     int count = 0;
     int[] initialArray = {READ_MODE, currentAddress.get8Bit(), ADDRESS_MEMORY_START, TOTAL_MEMORY_LENGTH, FIRMWARE_REV, MANUFACTURER_CODE, SENSOR_ID};
-    while (!foundExpectedBytes(initialArray, readLock, readCache)) {
+    while (foundExpectedBytes(initialArray, readLock, readCache)) {
       telemetry.addData("I2cAddressChange", "Confirming that we're reading the correct bytes...");
       telemetry.update();
       dim.readI2cCacheFromController(port);
@@ -143,7 +149,7 @@ public class ConceptI2cAddressChange extends LinearOpMode {
     }
 
     // Enable writes to the correct segment of the memory map.
-    performAction("write", port, currentAddress, ADDRESS_SET_NEW_I2C_ADDRESS, BUFFER_CHANGE_ADDRESS_LENGTH);
+    performAction("write", currentAddress, ADDRESS_SET_NEW_I2C_ADDRESS, BUFFER_CHANGE_ADDRESS_LENGTH);
 
     // Write out the trigger bytes, and the new desired address.
     writeNewAddress();
@@ -162,7 +168,7 @@ public class ConceptI2cAddressChange extends LinearOpMode {
     dim.writeI2cCacheToController(port);
 
     int[] confirmArray = {READ_MODE, newAddress.get8Bit(), ADDRESS_MEMORY_START, TOTAL_MEMORY_LENGTH, FIRMWARE_REV, MANUFACTURER_CODE, SENSOR_ID};
-    while (!foundExpectedBytes(confirmArray, readLock, readCache)) {
+    while (foundExpectedBytes(confirmArray, readLock, readCache)) {
       telemetry.addData("I2cAddressChange", "Have not confirmed the changes yet...");
       telemetry.update();
       dim.readI2cCacheFromController(port);
@@ -173,15 +179,13 @@ public class ConceptI2cAddressChange extends LinearOpMode {
     telemetry.update();
     RobotLog.i("Successfully changed the I2C address." + String.format("New address: 8bit=0x%02x", newAddress.get8Bit()));
 
-    /**** IMPORTANT NOTE ******/
     // You need to add a line like this at the top of your op mode
     // to update the I2cAddress in the driver.
     //irSeeker.setI2cAddress(newAddress);
-    /***************************/
 
   }
 
-  private boolean foundExpectedBytes(int[] byteArray, Lock lock, byte[] cache) {
+  private boolean foundExpectedBytes(@NonNull int[] byteArray, @NonNull Lock lock, byte[] cache) {
     try {
       lock.lock();
       boolean allMatch = true;
@@ -195,19 +199,19 @@ public class ConceptI2cAddressChange extends LinearOpMode {
         }
       }
       RobotLog.e(s.toString() + "\n allMatch: " + allMatch + ", mismatch: " + mismatch);
-      return allMatch;
+      return !allMatch;
     } finally {
       lock.unlock();
     }
   }
 
-  private void performAction(String actionName, int port, I2cAddr i2cAddress, int memAddress, int memLength) {
-    if (actionName.equalsIgnoreCase("read")) dim.enableI2cReadMode(port, i2cAddress, memAddress, memLength);
-    if (actionName.equalsIgnoreCase("write")) dim.enableI2cWriteMode(port, i2cAddress, memAddress, memLength);
+  private void performAction(@NonNull String actionName, I2cAddr i2cAddress, int memAddress, int memLength) {
+    if (actionName.equalsIgnoreCase("read")) dim.enableI2cReadMode(5, i2cAddress, memAddress, memLength);
+    if (actionName.equalsIgnoreCase("write")) dim.enableI2cWriteMode(5, i2cAddress, memAddress, memLength);
 
-    dim.setI2cPortActionFlag(port);
-    dim.writeI2cCacheToController(port);
-    dim.readI2cCacheFromController(port);
+    dim.setI2cPortActionFlag(5);
+    dim.writeI2cCacheToController(5);
+    dim.readI2cCacheFromController(5);
   }
 
   private void writeNewAddress() {

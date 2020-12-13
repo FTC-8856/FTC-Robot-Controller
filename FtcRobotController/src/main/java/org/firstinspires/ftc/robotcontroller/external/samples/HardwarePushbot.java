@@ -29,6 +29,9 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -53,10 +56,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class HardwarePushbot
 {
     /* Public OpMode members. */
+    @Nullable
     public DcMotor  leftDrive   = null;
+    @Nullable
     public DcMotor  rightDrive  = null;
+    @Nullable
     public DcMotor  leftArm     = null;
+    @Nullable
     public Servo    leftClaw    = null;
+    @Nullable
     public Servo    rightClaw   = null;
 
     public static final double MID_SERVO       =  0.5 ;
@@ -64,8 +72,10 @@ public class HardwarePushbot
     public static final double ARM_DOWN_POWER  = -0.45 ;
 
     /* local OpMode members. */
+    @Nullable
     HardwareMap hwMap           =  null;
-    private ElapsedTime period  = new ElapsedTime();
+    @NonNull
+    private final ElapsedTime period  = new ElapsedTime();
 
     /* Constructor */
     public HardwarePushbot(){

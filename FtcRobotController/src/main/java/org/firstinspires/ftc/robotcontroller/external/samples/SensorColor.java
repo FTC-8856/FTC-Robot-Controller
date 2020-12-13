@@ -130,7 +130,7 @@ public class SensorColor extends LinearOpMode {
     // xButtonPreviouslyPressed and xButtonCurrentlyPressed keep track of the previous and current
     // state of the X button on the gamepad
     boolean xButtonPreviouslyPressed = false;
-    boolean xButtonCurrentlyPressed = false;
+    boolean xButtonCurrentlyPressed;
 
     // Get a reference to our sensor object. It's recommended to use NormalizedColorSensor over
     // ColorSensor, because NormalizedColorSensor consistently gives values between 0 and 1, while

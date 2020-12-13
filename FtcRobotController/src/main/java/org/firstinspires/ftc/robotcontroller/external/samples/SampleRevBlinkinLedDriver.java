@@ -29,6 +29,8 @@
  */
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -100,11 +102,9 @@ public class SampleRevBlinkinLedDriver extends OpMode {
 
         if (displayKind == DisplayKind.AUTO) {
             doAutoDisplay();
-        } else {
-            /*
-             * MANUAL mode: Nothing to do, setting the pattern as a result of a gamepad event.
-             */
-        }
+        }  /*
+         * MANUAL mode: Nothing to do, setting the pattern as a result of a gamepad event.
+         */
     }
 
     /*
@@ -141,7 +141,7 @@ public class SampleRevBlinkinLedDriver extends OpMode {
         }
     }
 
-    protected void setDisplayKind(DisplayKind displayKind)
+    protected void setDisplayKind(@NonNull DisplayKind displayKind)
     {
         this.displayKind = displayKind;
         display.setValue(displayKind.toString());

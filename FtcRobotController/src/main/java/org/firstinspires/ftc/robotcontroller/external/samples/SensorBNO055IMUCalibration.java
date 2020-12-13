@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.adafruit.AdafruitBNO055IMU;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -190,11 +192,13 @@ public class SensorBNO055IMUCalibration extends LinearOpMode
 
         telemetry.addLine()
             .addData("status", new Func<String>() {
+                @NonNull
                 @Override public String value() {
                     return imu.getSystemStatus().toShortString();
                     }
                 })
             .addData("calib", new Func<String>() {
+                @NonNull
                 @Override public String value() {
                     return imu.getCalibrationStatus().toString();
                     }
@@ -202,16 +206,19 @@ public class SensorBNO055IMUCalibration extends LinearOpMode
 
         telemetry.addLine()
             .addData("heading", new Func<String>() {
+                @NonNull
                 @Override public String value() {
                     return formatAngle(angles.angleUnit, angles.firstAngle);
                     }
                 })
             .addData("roll", new Func<String>() {
+                @NonNull
                 @Override public String value() {
                     return formatAngle(angles.angleUnit, angles.secondAngle);
                     }
                 })
             .addData("pitch", new Func<String>() {
+                @NonNull
                 @Override public String value() {
                     return formatAngle(angles.angleUnit, angles.thirdAngle);
                     }
@@ -222,10 +229,12 @@ public class SensorBNO055IMUCalibration extends LinearOpMode
     // Formatting
     //----------------------------------------------------------------------------------------------
 
-    String formatAngle(AngleUnit angleUnit, double angle) {
+    @NonNull
+    String formatAngle(@NonNull AngleUnit angleUnit, double angle) {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
 
+    @NonNull
     String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }

@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -82,6 +84,7 @@ public class ConceptTensorFlowObjectDetectionSwitchableCameras extends LinearOpM
      * Variables used for switching cameras.
      */
     private WebcamName webcam1, webcam2;
+    @Nullable
     private SwitchableCamera switchableCamera;
     private boolean oldLeftBumper;
     private boolean oldRightBumper;
@@ -99,10 +102,6 @@ public class ConceptTensorFlowObjectDetectionSwitchableCameras extends LinearOpM
         initVuforia();
         initTfod();
 
-        /**
-         * Activate TensorFlow Object Detection before we wait for the start command.
-         * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
-         **/
         if (tfod != null) {
             tfod.activate();
 
@@ -117,7 +116,6 @@ public class ConceptTensorFlowObjectDetectionSwitchableCameras extends LinearOpM
             //tfod.setZoom(2.5, 1.78);
         }
 
-        /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.update();
         waitForStart();

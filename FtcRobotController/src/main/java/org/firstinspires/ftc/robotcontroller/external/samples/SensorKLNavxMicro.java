@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -65,6 +67,8 @@ public class SensorKLNavxMicro extends LinearOpMode {
     NavxMicroNavigationSensor navxMicro;
 
     // A timer helps provide feedback while calibration is taking place
+    @NonNull
+    final
     ElapsedTime timer = new ElapsedTime();
 
     @Override public void runOpMode() throws InterruptedException {
@@ -115,14 +119,17 @@ public class SensorKLNavxMicro extends LinearOpMode {
         }
     }
 
+    @NonNull
     String formatRate(float rate) {
         return String.format("%.3f", rate);
     }
 
-    String formatAngle(AngleUnit angleUnit, double angle) {
+    @NonNull
+    String formatAngle(@NonNull AngleUnit angleUnit, double angle) {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
 
+    @NonNull
     String formatDegrees(double degrees){
         return String.format("%.1f", AngleUnit.DEGREES.normalize(degrees));
     }

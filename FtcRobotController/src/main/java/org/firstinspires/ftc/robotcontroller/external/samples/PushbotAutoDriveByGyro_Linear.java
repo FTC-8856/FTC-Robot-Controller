@@ -29,6 +29,9 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -75,7 +78,10 @@ import com.qualcomm.robotcore.util.Range;
 public class PushbotAutoDriveByGyro_Linear extends LinearOpMode {
 
     /* Declare OpMode members. */
+    @NonNull
+    final
     HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
+    @Nullable
     ModernRoboticsI2cGyro   gyro    = null;                    // Additional Gyro device
 
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
@@ -256,7 +262,7 @@ public class PushbotAutoDriveByGyro_Linear extends LinearOpMode {
     public void gyroTurn (  double speed, double angle) {
 
         // keep looping while we are still active, and not on heading.
-        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
+        while (opModeIsActive() && !onHeading(speed, angle)) {
             // Update telemetry & Allow time for other processes to run.
             telemetry.update();
         }
@@ -280,7 +286,7 @@ public class PushbotAutoDriveByGyro_Linear extends LinearOpMode {
         holdTimer.reset();
         while (opModeIsActive() && (holdTimer.time() < holdTime)) {
             // Update telemetry & Allow time for other processes to run.
-            onHeading(speed, angle, P_TURN_COEFF);
+            onHeading(speed, angle);
             telemetry.update();
         }
 
@@ -296,10 +302,9 @@ public class PushbotAutoDriveByGyro_Linear extends LinearOpMode {
      * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
      *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *                  If a relative angle is required, add/subtract from current heading.
-     * @param PCoeff    Proportional Gain coefficient
      * @return
      */
-    boolean onHeading(double speed, double angle, double PCoeff) {
+    boolean onHeading(double speed, double angle) {
         double   error ;
         double   steer ;
         boolean  onTarget = false ;
@@ -316,7 +321,7 @@ public class PushbotAutoDriveByGyro_Linear extends LinearOpMode {
             onTarget = true;
         }
         else {
-            steer = getSteer(error, PCoeff);
+            steer = getSteer(error, PushbotAutoDriveByGyro_Linear.P_TURN_COEFF);
             rightSpeed  = speed * steer;
             leftSpeed   = -rightSpeed;
         }

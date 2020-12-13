@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cCompassSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -54,6 +56,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 public class SensorMRCompass extends LinearOpMode {
 
     ModernRoboticsI2cCompassSensor compass;
+    @NonNull
+    final
     ElapsedTime                    timer = new ElapsedTime();
 
     @Override public void runOpMode() {

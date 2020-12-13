@@ -130,6 +130,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class FtcRobotControllerActivity extends Activity
   {
   public static final String TAG = "RCActivity";
+  @NonNull
   public String getTag() { return TAG; }
 
   private static final int REQUEST_CONFIG_WIFI_CHANNEL = 1;
@@ -143,8 +144,10 @@ public class FtcRobotControllerActivity extends Activity
   protected UpdateUI.Callback callback;
   protected Context context;
   protected Utility utility;
-  protected StartResult prefRemoterStartResult = new StartResult();
-  protected StartResult deviceNameStartResult = new StartResult();
+  @NonNull
+  protected final StartResult prefRemoterStartResult = new StartResult();
+  @NonNull
+  protected final StartResult deviceNameStartResult = new StartResult();
   protected PreferencesHelper preferencesHelper;
   protected final SharedPreferencesListener sharedPreferencesListener = new SharedPreferencesListener();
 
@@ -152,7 +155,8 @@ public class FtcRobotControllerActivity extends Activity
   protected TextView textDeviceName;
   protected TextView textNetworkConnectionStatus;
   protected TextView textRobotStatus;
-  protected TextView[] textGamepad = new TextView[NUM_GAMEPADS];
+  @NonNull
+  protected final TextView[] textGamepad = new TextView[NUM_GAMEPADS];
   protected TextView textOpMode;
   protected TextView textErrorMessage;
   protected ImmersiveMode immersion;
@@ -161,20 +165,22 @@ public class FtcRobotControllerActivity extends Activity
   protected Dimmer dimmer;
   protected LinearLayout entireScreenLayout;
 
+  @Nullable
   protected FtcRobotControllerService controllerService;
   protected NetworkType networkType;
 
+  @Nullable
   protected FtcEventLoop eventLoop;
   protected Queue<UsbDevice> receivedUsbAttachmentNotifications;
 
+  @Nullable
   protected WifiMuteStateMachine wifiMuteStateMachine;
+  @Nullable
   protected MotionDetection motionDetection;
 
   private static boolean permissionsValidated = false;
 
-  private WifiDirectChannelChanger wifiDirectChannelChanger;
-
-  protected class RobotRestarter implements Restarter {
+    protected class RobotRestarter implements Restarter {
 
     public void requestRestart() {
       requestRobotRestart();
@@ -183,7 +189,8 @@ public class FtcRobotControllerActivity extends Activity
   }
 
   protected boolean serviceShouldUnbind = false;
-  protected ServiceConnection connection = new ServiceConnection() {
+  @NonNull
+  protected final ServiceConnection connection = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
       FtcRobotControllerBinder binder = (FtcRobotControllerBinder) service;
@@ -198,7 +205,7 @@ public class FtcRobotControllerActivity extends Activity
   };
 
   @Override
-  protected void onNewIntent(Intent intent) {
+  protected void onNewIntent(@NonNull Intent intent) {
     super.onNewIntent(intent);
 
     if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
@@ -288,7 +295,7 @@ public class FtcRobotControllerActivity extends Activity
 
     PreferenceRemoterRC.getInstance().start(prefRemoterStartResult);
 
-    receivedUsbAttachmentNotifications = new ConcurrentLinkedQueue<UsbDevice>();
+    receivedUsbAttachmentNotifications = new ConcurrentLinkedQueue<>();
     eventLoop = null;
 
     setContentView(R.layout.activity_ftc_controller);
@@ -305,7 +312,7 @@ public class FtcRobotControllerActivity extends Activity
         PopupMenu popupMenu = new PopupMenu(FtcRobotControllerActivity.this, v);
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
           @Override
-          public boolean onMenuItemClick(MenuItem item) {
+          public boolean onMenuItemClick(@NonNull MenuItem item) {
             return onOptionsItemSelected(item); // Delegate to the handler for the hardware menu button
           }
         });
@@ -355,7 +362,7 @@ public class FtcRobotControllerActivity extends Activity
     programmingModeManager.register(new OnBotJavaProgrammingMode());
 
     updateUI = createUpdateUI();
-    callback = createUICallback(updateUI);
+    callback = createUICallback();
 
     PreferenceManager.setDefaultValues(this, R.xml.app_settings, false);
 
@@ -381,6 +388,7 @@ public class FtcRobotControllerActivity extends Activity
     FtcAboutActivity.setBuildTimeFromBuildConfig(BuildConfig.BUILD_TIME);
   }
 
+  @NonNull
   protected UpdateUI createUpdateUI() {
     Restarter restarter = new RobotRestarter();
     UpdateUI result = new UpdateUI(this, dimmer);
@@ -389,7 +397,8 @@ public class FtcRobotControllerActivity extends Activity
     return result;
   }
 
-  protected UpdateUI.Callback createUICallback(UpdateUI updateUI) {
+  @NonNull
+  protected UpdateUI.Callback createUICallback() {
     UpdateUI.Callback result = updateUI.new Callback();
     result.setStateMonitor(new SoundPlayingRobotMonitor());
     return result;
@@ -500,7 +509,7 @@ public class FtcRobotControllerActivity extends Activity
     //
     // Control hubs are always running the access point model.  Everything else, for the time
     // being always runs the wifi direct model.
-    if (Device.isRevControlHub() == true) {
+    if (Device.isRevControlHub()) {
       networkType = NetworkType.RCWIRELESSAP;
     } else {
       networkType = NetworkType.fromString(preferencesHelper.readString(context.getString(R.string.pref_pairing_kind), NetworkType.globalDefaultAsString()));
@@ -539,15 +548,11 @@ public class FtcRobotControllerActivity extends Activity
 
     RobotState robotState = robot.eventLoopManager.state;
 
-    if (robotState != RobotState.RUNNING) {
-      return false;
-    } else {
-      return true;
-    }
+    return robotState == RobotState.RUNNING;
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  public boolean onOptionsItemSelected(@NonNull MenuItem item) {
     int id = item.getItemId();
 
     if (id == R.id.action_program_and_manage) {
@@ -613,7 +618,7 @@ public class FtcRobotControllerActivity extends Activity
   }
 
   @Override
-  public void onConfigurationChanged(Configuration newConfig) {
+  public void onConfigurationChanged(@NonNull Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
     // don't destroy assets on screen rotation
     updateMonitorLayout(newConfig);
@@ -623,7 +628,7 @@ public class FtcRobotControllerActivity extends Activity
    * Updates the orientation of monitorContainer (which contains cameraMonitorView and
    * tfodMonitorView) based on the given configuration. Makes the children split the space.
    */
-  private void updateMonitorLayout(Configuration configuration) {
+  private void updateMonitorLayout(@NonNull Configuration configuration) {
     LinearLayout monitorContainer = (LinearLayout) findViewById(R.id.monitorContainer);
     if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
       // When the phone is landscape, lay out the monitor views horizontally.
@@ -657,7 +662,7 @@ public class FtcRobotControllerActivity extends Activity
     }
   }
 
-  public void onServiceBind(final FtcRobotControllerService service) {
+  public void onServiceBind(@NonNull final FtcRobotControllerService service) {
     RobotLog.vv(FtcRobotControllerService.TAG, "%s.controllerService=bound", TAG);
     controllerService = service;
     updateUI.setControllerService(controllerService);
@@ -716,6 +721,7 @@ public class FtcRobotControllerActivity extends Activity
     AndroidBoard.showErrorIfUnknownControlHub();
   }
 
+  @NonNull
   protected OpModeRegister createOpModeRegister() {
     return new FtcOpModeRegister();
   }
@@ -754,7 +760,7 @@ public class FtcRobotControllerActivity extends Activity
 
       // attempt to set the preferred channel.
       RobotLog.vv(TAG, "pref_wifip2p_channel: attempting to set preferred channel...");
-      wifiDirectChannelChanger = new WifiDirectChannelChanger();
+      WifiDirectChannelChanger wifiDirectChannelChanger = new WifiDirectChannelChanger();
       wifiDirectChannelChanger.changeToChannel(prefChannel);
     }
   }
@@ -774,15 +780,11 @@ public class FtcRobotControllerActivity extends Activity
   }
 
   protected class SharedPreferencesListener implements SharedPreferences.OnSharedPreferenceChangeListener {
-    @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @NonNull String key) {
       if (key.equals(context.getString(R.string.pref_app_theme))) {
         ThemedActivity.restartForAppThemeChange(getTag(), getString(R.string.appThemeChangeRestartNotifyRC));
       } else if (key.equals(context.getString(R.string.pref_wifi_automute))) {
-        if (preferencesHelper.readBoolean(context.getString(R.string.pref_wifi_automute), false)) {
-          initWifiMute(true);
-        } else {
-          initWifiMute(false);
-        }
+        initWifiMute(preferencesHelper.readBoolean(context.getString(R.string.pref_wifi_automute), false));
       }
     }
   }

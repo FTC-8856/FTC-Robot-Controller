@@ -34,8 +34,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import java.io.File;
-
 /**
  * This file demonstrates how to play simple sounds on both the RC and DS phones.
  * It illustrates how to build sounds into your application as a resource.
@@ -77,9 +75,6 @@ public class ConceptSoundsASJava extends LinearOpMode {
     private boolean goldFound;      // Sound file present flags
     private boolean silverFound;
 
-    private boolean isX = false;    // Gamepad button state variables
-    private boolean isB = false;
-
     private boolean wasX = false;   // Gamepad button history variables
     private boolean WasB = false;
 
@@ -114,6 +109,8 @@ public class ConceptSoundsASJava extends LinearOpMode {
         while (opModeIsActive()) {
 
             // say Silver each time gamepad X is pressed (This sound is a resource)
+            // Gamepad button state variables
+            boolean isX = false;
             if (silverFound && (isX = gamepad1.x) && !wasX) {
                 SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, silverSoundID);
                 telemetry.addData("Playing", "Resource Silver");
@@ -121,6 +118,7 @@ public class ConceptSoundsASJava extends LinearOpMode {
             }
 
             // say Gold each time gamepad B is pressed  (This sound is a resource)
+            boolean isB = false;
             if (goldFound && (isB = gamepad1.b) && !WasB) {
                 SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, goldSoundID);
                 telemetry.addData("Playing", "Resource Gold");

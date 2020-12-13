@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.robot.Robot;
-import com.qualcomm.robotcore.util.Hardware;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -15,14 +13,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 
-import org.firstinspires.ftc.robotcore.external.android.AndroidOrientation;
-import org.firstinspires.ftc.robotcore.external.android.AndroidTextToSpeech;
-
-import java.lang.reflect.Array;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -34,8 +26,12 @@ public class BraveNewWorld extends OpMode {
     /* Declare OpMode members. */
     //AndroidOrientation compass(); // Android Orientation Object Declaration
     //AndroidTextToSpeech speek(); // Text to Speech Object
+    @NonNull
+    final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
     //                      FR BR FL BL
+    @NonNull
+    final
     Map<DcMotor, Double[]> valueMap = new HashMap<>();
     double wobble_pos = 0;
     double finger_pos = 0;
@@ -98,7 +94,7 @@ public class BraveNewWorld extends OpMode {
     public void start() {
     }
 
-    private void setPower(DcMotor motor) {
+    private void setPower(@NonNull DcMotor motor) {
         Double[] values = valueMap.get(motor);
         double forward_backward = values[0] * gamepad1.right_stick_y;
         double strafe = values[1] * gamepad1.right_stick_x;

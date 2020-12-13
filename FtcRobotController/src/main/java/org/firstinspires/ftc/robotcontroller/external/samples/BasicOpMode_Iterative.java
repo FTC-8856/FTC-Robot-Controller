@@ -29,6 +29,9 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -55,8 +58,11 @@ import com.qualcomm.robotcore.util.Range;
 public class BasicOpMode_Iterative extends OpMode
 {
     // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
+    @NonNull
+    private final ElapsedTime runtime = new ElapsedTime();
+    @Nullable
     private DcMotor leftDrive = null;
+    @Nullable
     private DcMotor rightDrive = null;
 
     /*

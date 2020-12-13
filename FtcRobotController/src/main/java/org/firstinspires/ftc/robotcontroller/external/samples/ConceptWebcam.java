@@ -34,6 +34,7 @@ import android.graphics.ImageFormat;
 import android.os.Handler;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -90,7 +91,9 @@ public class ConceptWebcam extends LinearOpMode {
     /** State regarding our interaction with the camera */
     private CameraManager cameraManager;
     private WebcamName cameraName;
+    @Nullable
     private Camera camera;
+    @Nullable
     private CameraCaptureSession cameraCaptureSession;
 
     /** The queue into which all frames from the camera are placed as they become available.
@@ -99,7 +102,8 @@ public class ConceptWebcam extends LinearOpMode {
 
     /** State regarding where and how to save frames when the 'A' button is pressed. */
     private int captureCounter = 0;
-    private File captureDirectory = AppUtil.ROBOT_DATA_DIR;
+    @NonNull
+    private final File captureDirectory = AppUtil.ROBOT_DATA_DIR;
 
     /** A utility object that indicates where the asynchronous callbacks from the camera
      * infrastructure are to run. In this OpMode, that's all hidden from you (but see {@link #startCamera}
@@ -117,7 +121,7 @@ public class ConceptWebcam extends LinearOpMode {
         cameraManager = ClassFactory.getInstance().getCameraManager();
         cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
-        initializeFrameQueue(2);
+        initializeFrameQueue();
         AppUtil.getInstance().ensureDirectoryExists(captureDirectory);
 
         try {
@@ -159,7 +163,7 @@ public class ConceptWebcam extends LinearOpMode {
     }
 
     /** Do something with the frame */
-    private void onNewFrame(Bitmap frame) {
+    private void onNewFrame(@NonNull Bitmap frame) {
         saveBitmap(frame);
         frame.recycle(); // not strictly necessary, but helpful
     }
@@ -168,12 +172,10 @@ public class ConceptWebcam extends LinearOpMode {
     // Camera operations
     //----------------------------------------------------------------------------------------------
 
-    private void initializeFrameQueue(int capacity) {
-        /** The frame queue will automatically throw away bitmap frames if they are not processed
-         * quickly by the OpMode. This avoids a buildup of frames in memory */
-        frameQueue = new EvictingBlockingQueue<Bitmap>(new ArrayBlockingQueue<Bitmap>(capacity));
+    private void initializeFrameQueue() {
+        frameQueue = new EvictingBlockingQueue<>(new ArrayBlockingQueue<Bitmap>(2));
         frameQueue.setEvictAction(new Consumer<Bitmap>() {
-            @Override public void accept(Bitmap frame) {
+            @Override public void accept(@NonNull Bitmap frame) {
                 // RobotLog.ii(TAG, "frame recycled w/o processing");
                 frame.recycle(); // not strictly necessary, but helpful
             }
@@ -193,35 +195,25 @@ public class ConceptWebcam extends LinearOpMode {
     private void startCamera() {
         if (cameraCaptureSession != null) return; // be idempotent
 
-        /** YUY2 is supported by all Webcams, per the USB Webcam standard: See "USB Device Class Definition
-         * for Video Devices: Uncompressed Payload, Table 2-1". Further, often this is the *only*
-         * image format supported by a camera */
         final int imageFormat = ImageFormat.YUY2;
 
-        /** Verify that the image is supported, and fetch size and desired frame rate if so */
         CameraCharacteristics cameraCharacteristics = cameraName.getCameraCharacteristics();
-        if (!contains(cameraCharacteristics.getAndroidFormats(), imageFormat)) {
+        if (!contains(cameraCharacteristics.getAndroidFormats())) {
             error("image format not supported");
             return;
         }
         final Size size = cameraCharacteristics.getDefaultSize(imageFormat);
         final int fps = cameraCharacteristics.getMaxFramesPerSecond(imageFormat, size);
 
-        /** Some of the logic below runs asynchronously on other threads. Use of the synchronizer
-         * here allows us to wait in this method until all that asynchrony completes before returning. */
         final ContinuationSynchronizer<CameraCaptureSession> synchronizer = new ContinuationSynchronizer<>();
         try {
-            /** Create a session in which requests to capture frames can be made */
             camera.createCaptureSession(Continuation.create(callbackHandler, new CameraCaptureSession.StateCallbackDefault() {
                 @Override public void onConfigured(@NonNull CameraCaptureSession session) {
                     try {
-                        /** The session is ready to go. Start requesting frames */
                         final CameraCaptureRequest captureRequest = camera.createCaptureRequest(imageFormat, size, fps);
                         session.startCapture(captureRequest,
                             new CameraCaptureSession.CaptureCallback() {
                                 @Override public void onNewFrame(@NonNull CameraCaptureSession session, @NonNull CameraCaptureRequest request, @NonNull CameraFrame cameraFrame) {
-                                    /** A new frame is available. The frame data has <em>not</em> been copied for us, and we can only access it
-                                     * for the duration of the callback. So we copy here manually. */
                                     Bitmap bmp = captureRequest.createEmptyBitmap();
                                     cameraFrame.copyToBitmap(bmp);
                                     frameQueue.offer(bmp);
@@ -234,7 +226,7 @@ public class ConceptWebcam extends LinearOpMode {
                             })
                         );
                         synchronizer.finish(session);
-                    } catch (CameraException|RuntimeException e) {
+                    } catch (@NonNull CameraException|RuntimeException e) {
                         RobotLog.ee(TAG, e, "exception starting capture");
                         error("exception starting capture");
                         session.close();
@@ -242,20 +234,18 @@ public class ConceptWebcam extends LinearOpMode {
                     }
                 }
             }));
-        } catch (CameraException|RuntimeException e) {
+        } catch (@NonNull CameraException|RuntimeException e) {
             RobotLog.ee(TAG, e, "exception starting camera");
             error("exception starting camera");
             synchronizer.finish(null);
         }
 
-        /** Wait for all the asynchrony to complete */
         try {
             synchronizer.await();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
 
-        /** Retrieve the created session. This will be null on error. */
         cameraCaptureSession = synchronizer.getValue();
     }
 
@@ -288,14 +278,14 @@ public class ConceptWebcam extends LinearOpMode {
         telemetry.update();
     }
 
-    private boolean contains(int[] array, int value) {
+    private boolean contains(@NonNull int[] array) {
         for (int i : array) {
-            if (i == value) return true;
+            if (i == 20) return true;
         }
         return false;
     }
 
-    private void saveBitmap(Bitmap bitmap) {
+    private void saveBitmap(@NonNull Bitmap bitmap) {
         File file = new File(captureDirectory, String.format(Locale.getDefault(), "webcam-frame-%d.jpg", captureCounter++));
         try {
             try (FileOutputStream outputStream = new FileOutputStream(file)) {

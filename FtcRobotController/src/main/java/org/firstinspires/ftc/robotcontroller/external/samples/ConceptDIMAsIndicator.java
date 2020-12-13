@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -59,7 +61,8 @@ public class ConceptDIMAsIndicator extends LinearOpMode {
     static final int    RED_LED     = 1;     // Red LED Channel on DIM
 
     // Create timer to toggle LEDs
-    private ElapsedTime runtime = new ElapsedTime();
+    @NonNull
+    private final ElapsedTime runtime = new ElapsedTime();
 
     // Define class members
     DeviceInterfaceModule   dim;

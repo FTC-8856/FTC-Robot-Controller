@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -43,19 +45,29 @@ import org.openftc.easyopencv.*;
  */
 public class RobotHardware {
     /* Public OpMode members. */
+    @Nullable
     public DcMotor frontleft = null;
+    @Nullable
     public DcMotor frontright = null;
+    @Nullable
     public DcMotor backleft = null;
+    @Nullable
     public DcMotor backright = null;
+    @Nullable
     public DcMotor intake = null;
+    @Nullable
     public Servo wobble = null;
+    @Nullable
     public Servo wobbleFinger = null;
+    @Nullable
     public ColorSensor greg = null;
+    @Nullable
     public OpenCvCamera webcam = null;
 
     /* local OpMode members. */
+    @Nullable
     HardwareMap hwMap = null;
-    private ElapsedTime period = new ElapsedTime();
+    private final ElapsedTime period = new ElapsedTime();
 
     /* Constructor */
     public RobotHardware() {
@@ -63,7 +75,7 @@ public class RobotHardware {
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap, String features) {
+    public void init(HardwareMap ahwMap) {
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -100,19 +112,12 @@ public class RobotHardware {
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Do the OpenCV initialization if it is asked for
-        if (features.contains("webcam")) {
-            // We will have to have this commented out until we figure out how to get the webcam on the hardware map
-            //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
-        }
-    }
-
-    public void init(HardwareMap ahwMap) { // Overload to not make the features parameter required because java is dumb and doesn't allow for something like this already.
-        init(ahwMap, "");
+        // We will have to have this commented out until we figure out how to get the webcam on the hardware map
+        //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
     }
 
     public OpenCvCamera startCamera(WebcamName cameraID) { // Not done yet, this only gets the camera instance, but does not start the video streaming
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(cameraID);
-        return camera;
+        return OpenCvCameraFactory.getInstance().createWebcam(cameraID);
     }
 }
 

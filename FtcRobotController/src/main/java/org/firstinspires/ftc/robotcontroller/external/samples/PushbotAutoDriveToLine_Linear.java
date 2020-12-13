@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -59,6 +61,8 @@ import com.qualcomm.robotcore.hardware.LightSensor;
 public class PushbotAutoDriveToLine_Linear extends LinearOpMode {
 
     /* Declare OpMode members. */
+    @NonNull
+    final
     HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
     LightSensor             lightSensor;      // Primary LEGO Light sensor,
     // OpticalDistanceSensor   lightSensor;   // Alternative MR ODS sensor

@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -57,8 +59,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class ConceptCompassCalibration extends LinearOpMode {
 
     /* Declare OpMode members. */
+    @NonNull
+    final
     HardwarePushbot     robot   = new HardwarePushbot();   // Use a Pushbot's hardware
-    private ElapsedTime runtime = new ElapsedTime();
+    @NonNull
+    private final ElapsedTime runtime = new ElapsedTime();
     CompassSensor       compass;
 
     final static double     MOTOR_POWER   = 0.2; // scale from 0 to 1
