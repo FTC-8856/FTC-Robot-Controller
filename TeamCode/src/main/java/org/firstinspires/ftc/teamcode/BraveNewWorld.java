@@ -30,10 +30,13 @@ public class BraveNewWorld extends OpMode{
     //AndroidTextToSpeech speek(); // Text to Speech Object
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
     //                      FR BR FL BL
-    double[] leftvalue =    {1,-1,-1,1};// Motor Values to strafe Left
-    double[] forwardvalue = {1,1,1,1}; // Motor Values to go Forwards
-    double[] clockwisevalue={1,1,-1,-1}; // Motor Values to turn clockwise
     Map<DcMotor, Double[]> valueMap = new HashMap<>();
+    {                                           //  F/B   L/R   TURN
+        valueMap.put(robot.frontright, new Double[]{1.0, 1.0, 1.0});
+        valueMap.put(robot.backright, new Double[]{-1.0, 1.0, 1.0});
+        valueMap.put(robot.frontleft, new Double[]{-1.0, 1.0, -1.0});
+        valueMap.put(robot.backleft, new Double[]{1.0, 1.0, -1.0});
+    }
     double wobble_pos = 0;
     double finger_pos = 0;
     
@@ -67,11 +70,6 @@ public class BraveNewWorld extends OpMode{
         imuParameters.loggingEnabled = false;
         // Initialize IMU.
         imu.initialize(imuParameters);
-
-        valueMap.insert(robot.frontright, new Double[]{1, 1, 1});
-        valueMap.insert(robot.backright, new Double[]{-1, 1, 1});
-        valueMap.insert(robot.frontleft, new Double[]{-1, 1, -1});
-        valueMap.insert(robot.backleft, new Double[]{1, 1, -1});
     }
 
     /*
@@ -80,7 +78,7 @@ public class BraveNewWorld extends OpMode{
     @Override
     public void init_loop() {
         telemetry.addData("Brave New World", "Groovy");
-        telemetry.addData("Version", "0.20");
+        telemetry.addData("Version", "0.21");
         telemetry.addData("Accelerometer", imu.isAccelerometerCalibrated());
         telemetry.addData("Gyro", imu.isGyroCalibrated());
         telemetry.addData("Magnetometer", imu.isMagnetometerCalibrated());
@@ -100,7 +98,7 @@ public class BraveNewWorld extends OpMode{
         double forward_backward = values[0] * gamepad1.right_stick_y; 
         double strafe = values[1] * gamepad1.right_stick_x;
         double turn = values[2] * gamepad1.left_stick_x;
-        let power = forward_backward + strafe + turn;
+        double power = forward_backward + strafe + turn;
         motor.setPower(Math.max(-1, Math.min(power, 1)));
     }
     
