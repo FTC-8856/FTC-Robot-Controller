@@ -47,6 +47,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.openftc.easyopencv.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This is NOT an opmode.
  */
@@ -77,6 +80,8 @@ public class RobotHardware {
     BNO055IMU.Parameters imuParameters;
     Position pos;
     Orientation rot;
+
+    Map<DcMotor, Double[]> motorMap = new HashMap<>();
 
     /* local OpMode members. */
     @Nullable
@@ -148,6 +153,13 @@ public class RobotHardware {
         // Do the OpenCV initialization if it is asked for
         // We will have to have this commented out until we figure out how to get the webcam on the hardware map
         //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
+
+        //         CHASSIS MOTOR POWER & DIRECTION CONFIG
+        //                                          F/B   L/R   TURN
+        motorMap.put(frontright, new Double[]{1.0,  1.0,  1.0});
+        motorMap.put(backright, new Double[]{-1.0,  1.0,  1.0});
+        motorMap.put(frontleft, new Double[]{-1.0,  1.0, -1.0});
+        motorMap.put(backleft, new Double[] { 1.0,  1.0, -1.0});
     }
 
     /* We'll come back to this function

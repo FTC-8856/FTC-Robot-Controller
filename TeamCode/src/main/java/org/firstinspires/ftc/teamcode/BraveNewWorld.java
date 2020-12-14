@@ -35,8 +35,6 @@ public class BraveNewWorld extends OpMode {
     final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
     @NonNull
-    final
-    Map<DcMotor, Double[]> valueMap = new HashMap<>();
     double wobble_pos = 0;
     double finger_pos = 0;
 
@@ -50,12 +48,6 @@ public class BraveNewWorld extends OpMode {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap, "imu");
-
-        //                                          F/B   L/R   TURN
-        valueMap.put(robot.frontright, new Double[]{1.0,  1.0,  1.0});
-        valueMap.put(robot.backright, new Double[]{-1.0,  1.0,  1.0});
-        valueMap.put(robot.frontleft, new Double[]{-1.0,  1.0, -1.0});
-        valueMap.put(robot.backleft, new Double[] { 1.0,  1.0, -1.0});
     }
 
     /*
@@ -85,7 +77,7 @@ public class BraveNewWorld extends OpMode {
     }
 
     private void setPower(@NonNull DcMotor motor) {
-        Double[] values = valueMap.get(motor);
+        Double[] values = robot.motorMap.get(motor);
         double forward_backward = values[0] * gamepad1.right_stick_y;
         double strafe = values[1] * gamepad1.right_stick_x;
         double turn = values[2] * gamepad1.left_stick_x;
