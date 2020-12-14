@@ -29,8 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.location.Location;
+
 import androidx.annotation.Nullable;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -38,6 +41,10 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.openftc.easyopencv.*;
 
 /**
@@ -64,6 +71,13 @@ public class RobotHardware {
     @Nullable
     public OpenCvCamera webcam = null;
 
+    /* IMU public variables */
+    boolean isImuEnabled = false;
+    BNO055IMU imu;
+    BNO055IMU.Parameters imuParameters;
+    Position pos;
+    Orientation rot;
+
     /* local OpMode members. */
     @Nullable
     HardwareMap hwMap = null;
@@ -75,7 +89,7 @@ public class RobotHardware {
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap) {
+    public void init(HardwareMap ahwMap, String features) {
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -111,13 +125,62 @@ public class RobotHardware {
         backright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        if(features.contains("imu")){
+            isImuEnabled = true;
+
+            imu = hwMap.get(BNO055IMU.class, "imu");
+
+            // Create new IMU Parameters object.
+            imuParameters = new BNO055IMU.Parameters();
+            imuParameters.mode = BNO055IMU.SensorMode.IMU;
+            // Use degrees as angle unit.
+            imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+            // Express acceleration as m/s^2.
+            imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+            //imuParameters.accelerationIntegrationAlgorithm = ; // We're gonna stick with the library's bad direct integration for now before we write our own, even worse one
+
+            // Disable logging.
+            imuParameters.loggingEnabled = false;
+            // Initialize IMU.
+            imu.initialize(imuParameters);
+        }
+
         // Do the OpenCV initialization if it is asked for
         // We will have to have this commented out until we figure out how to get the webcam on the hardware map
         //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
     }
 
+    /* We'll come back to this function
+    public void hardware_start(){
+        if(isImuEnabled) {
+            imu.startAccelerationIntegration();
+        }
+    }
+     */
+
+    public void hardware_loop(){
+        if(isImuEnabled) {
+            rot = imu.getAngularOrientation();
+            pos = imu.getPosition();
+        }
+    }
+
+    public void hardware_stop(){
+        if(isImuEnabled) {
+            imu.stopAccelerationIntegration();
+        }
+    }
+
     public OpenCvCamera startCamera(WebcamName cameraID) { // Not done yet, this only gets the camera instance, but does not start the video streaming
         return OpenCvCameraFactory.getInstance().createWebcam(cameraID);
+    }
+
+    public void startIMU(Position init_pos){
+        imu.startAccelerationIntegration(
+                init_pos,
+                new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0 , 0), // we don't need to worry about initial velocity. It's always going to be 0
+                10 // maximum possible poll interval ~~ 100Hz sample rate
+        );
     }
 }
 

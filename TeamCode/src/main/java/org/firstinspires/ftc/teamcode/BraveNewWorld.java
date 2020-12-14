@@ -41,11 +41,6 @@ public class BraveNewWorld extends OpMode {
     double finger_pos = 0;
 
 
-    BNO055IMU imu;
-    BNO055IMU.Parameters imuParameters;
-    Orientation rot;
-    Position pos;
-
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -54,23 +49,8 @@ public class BraveNewWorld extends OpMode {
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
          */
-        robot.init(hardwareMap);
+        robot.init(hardwareMap, "imu");
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-
-        // Create new IMU Parameters object.
-        imuParameters = new BNO055IMU.Parameters();
-        imuParameters.mode = BNO055IMU.SensorMode.IMU;
-        // Use degrees as angle unit.
-        imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        // Express acceleration as m/s^2.
-        imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        //imuParameters.accelerationIntegrationAlgorithm = ; // We're gonna stick with the library's bad direct integration for now before we write our own, even worse one
-
-        // Disable logging.
-        imuParameters.loggingEnabled = false;
-        // Initialize IMU.
-        imu.initialize(imuParameters);
         //                                          F/B   L/R   TURN
         valueMap.put(robot.frontright, new Double[]{1.0,  1.0,  1.0});
         valueMap.put(robot.backright, new Double[]{-1.0,  1.0,  1.0});
@@ -85,10 +65,10 @@ public class BraveNewWorld extends OpMode {
     public void init_loop() {
         telemetry.addData("Brave New World", "Groovy");
         telemetry.addData("Version", "0.21");
-        telemetry.addData("Accelerometer", imu.isAccelerometerCalibrated());
-        telemetry.addData("Gyro", imu.isGyroCalibrated());
-        telemetry.addData("Magnetometer", imu.isMagnetometerCalibrated());
-        telemetry.addData("Calib. Status", imu.getCalibrationStatus().toString());
+        telemetry.addData("Accelerometer", robot.imu.isAccelerometerCalibrated());
+        telemetry.addData("Gyro", robot.imu.isGyroCalibrated());
+        telemetry.addData("Magnetometer", robot.imu.isMagnetometerCalibrated());
+        telemetry.addData("Calib. Status", robot.imu.getCalibrationStatus().toString());
         telemetry.update();
     }
 
@@ -97,11 +77,11 @@ public class BraveNewWorld extends OpMode {
      */
     @Override
     public void start() {
-        imu.startAccelerationIntegration(
-                new Position(DistanceUnit.METER, 0.0, 0.0, 0.0, 0),
-                new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0 , 0),
-                10
-        );
+        robot.startIMU(new Position(
+                DistanceUnit.METER,
+                0.0, 0.0, 0.0 // <--- starting position
+                ,0
+        ));
     }
 
     private void setPower(@NonNull DcMotor motor) {
@@ -115,9 +95,8 @@ public class BraveNewWorld extends OpMode {
 
     @Override
     public void loop() {
-        rot = imu.getAngularOrientation();
-        pos = imu.getPosition();
-        
+        robot.hardware_loop();
+
         setPower(robot.frontright);
         setPower(robot.backright);
         setPower(robot.frontleft);
@@ -134,8 +113,8 @@ public class BraveNewWorld extends OpMode {
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x);
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x);
-        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", rot.thirdAngle, rot.secondAngle, rot.firstAngle);
-        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", pos.x, pos.y, pos.z);
+        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.rot.thirdAngle, robot.rot.secondAngle, robot.rot.firstAngle);
+        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.pos.x, robot.pos.y, robot.pos.z);
         telemetry.addData("HSV", "(%.2f, %.2f, %.2f)", hsv[0], hsv[1], hsv[2]);
         telemetry.update();
     }
@@ -145,7 +124,7 @@ public class BraveNewWorld extends OpMode {
      */
     @Override
     public void stop() {
-        imu.stopAccelerationIntegration();
+        robot.hardware_stop();
         telemetry.addData("Exit", "Goodest Good Job!");
         telemetry.update();
     }
