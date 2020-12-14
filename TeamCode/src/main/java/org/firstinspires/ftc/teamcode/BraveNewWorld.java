@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
+
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -7,9 +9,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 
@@ -29,7 +34,6 @@ public class BraveNewWorld extends OpMode {
     @NonNull
     final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
-    //                      FR BR FL BL
     @NonNull
     final
     Map<DcMotor, Double[]> valueMap = new HashMap<>();
@@ -39,9 +43,7 @@ public class BraveNewWorld extends OpMode {
 
     BNO055IMU imu;
     BNO055IMU.Parameters imuParameters;
-    Orientation angles;
-    Acceleration gravity;
-    Acceleration accel;
+    Orientation rot;
     Position pos;
 
     /*
@@ -63,14 +65,17 @@ public class BraveNewWorld extends OpMode {
         imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         // Express acceleration as m/s^2.
         imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        //imuParameters.accelerationIntegrationAlgorithm = ; // We're gonna stick with the library's bad direct integration for now before we write our own, even worse one
+
         // Disable logging.
         imuParameters.loggingEnabled = false;
         // Initialize IMU.
         imu.initialize(imuParameters);
-        valueMap.put(robot.frontright, new Double[]{1.0, 1.0, 1.0});
-        valueMap.put(robot.backright, new Double[]{-1.0, 1.0, 1.0});
-        valueMap.put(robot.frontleft, new Double[]{-1.0, 1.0, -1.0});
-        valueMap.put(robot.backleft, new Double[]{1.0, 1.0, -1.0});
+        //                                          F/B   L/R   TURN
+        valueMap.put(robot.frontright, new Double[]{1.0,  1.0,  1.0});
+        valueMap.put(robot.backright, new Double[]{-1.0,  1.0,  1.0});
+        valueMap.put(robot.frontleft, new Double[]{-1.0,  1.0, -1.0});
+        valueMap.put(robot.backleft, new Double[] { 1.0,  1.0, -1.0});
     }
 
     /*
@@ -92,6 +97,11 @@ public class BraveNewWorld extends OpMode {
      */
     @Override
     public void start() {
+        imu.startAccelerationIntegration(
+                new Position(DistanceUnit.METER, 0.0, 0.0, 0.0, 0),
+                new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0 , 0),
+                10
+        );
     }
 
     private void setPower(@NonNull DcMotor motor) {
@@ -105,10 +115,16 @@ public class BraveNewWorld extends OpMode {
 
     @Override
     public void loop() {
+        rot = imu.getAngularOrientation();
+        pos = imu.getPosition();
+        
         setPower(robot.frontright);
         setPower(robot.backright);
         setPower(robot.frontleft);
         setPower(robot.backleft);
+
+        float[] hsv = {0,0,0};
+        Color.colorToHSV(robot.greg.argb(), hsv);
 
         wobble_pos += 0.01 * gamepad2.left_stick_y;
         robot.wobble.setPosition(wobble_pos);
@@ -118,9 +134,9 @@ public class BraveNewWorld extends OpMode {
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x);
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x);
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", angles.thirdAngle, angles.secondAngle, angles.firstAngle);
-        telemetry.addData("RGBA", "(%.2f, %.2f, %.2f, %.2f)", robot.greg.red(), robot.greg.blue(), robot.greg.green(), robot.greg.alpha());
+        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", rot.thirdAngle, rot.secondAngle, rot.firstAngle);
+        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", pos.x, pos.y, pos.z);
+        telemetry.addData("HSV", "(%.2f, %.2f, %.2f)", hsv[0], hsv[1], hsv[2]);
         telemetry.update();
     }
 
@@ -129,6 +145,7 @@ public class BraveNewWorld extends OpMode {
      */
     @Override
     public void stop() {
+        imu.stopAccelerationIntegration();
         telemetry.addData("Exit", "Goodest Good Job!");
         telemetry.update();
     }
