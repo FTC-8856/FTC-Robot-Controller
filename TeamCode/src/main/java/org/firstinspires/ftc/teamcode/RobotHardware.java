@@ -30,23 +30,21 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.location.Location;
-
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
+import org.firstinspires.ftc.teamcode.Action;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.openftc.easyopencv.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,23 +54,23 @@ import java.util.Map;
 public class RobotHardware {
     /* Public OpMode members. */
     @Nullable
-    public DcMotor frontleft = null;
+    private DcMotor frontleft = null;
     @Nullable
-    public DcMotor frontright = null;
+    private DcMotor frontright = null;
     @Nullable
-    public DcMotor backleft = null;
+    private DcMotor backleft = null;
     @Nullable
-    public DcMotor backright = null;
+    private DcMotor backright = null;
     @Nullable
-    public DcMotor intake = null;
+    private DcMotor intake = null;
     @Nullable
-    public Servo wobble = null;
+    private Servo wobble = null;
     @Nullable
-    public Servo wobbleFinger = null;
+    private Servo wobbleFinger = null;
     @Nullable
-    public ColorSensor greg = null;
+    private ColorSensor greg = null;
     @Nullable
-    public OpenCvCamera webcam = null;
+    private OpenCvCamera webcam = null;
 
     /* IMU public variables */
     boolean isImuEnabled = false;
@@ -81,6 +79,7 @@ public class RobotHardware {
     Position pos;
     Orientation rot;
 
+    @NonNull
     Map<DcMotor, Double[]> motorMap = new HashMap<>();
 
     /* local OpMode members. */
@@ -94,7 +93,7 @@ public class RobotHardware {
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap, String features) {
+    public void init(HardwareMap ahwMap, @NonNull String features) {
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -142,6 +141,7 @@ public class RobotHardware {
             imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
             // Express acceleration as m/s^2.
             imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+            imuParameters.calibrationDataFile = "GregIMUCalibration.json";
             //imuParameters.accelerationIntegrationAlgorithm = ; // We're gonna stick with the library's bad direct integration for now before we write our own, even worse one
 
             // Disable logging.
@@ -193,6 +193,57 @@ public class RobotHardware {
                 new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0 , 0), // we don't need to worry about initial velocity. It's always going to be 0
                 10 // maximum possible poll interval ~~ 100Hz sample rate
         );
+    }
+
+    public void chassis(double right_stick_y, double right_stick_x, double left_stick_x) {
+        for (Map.Entry<DcMotor, Double[]> entry: motorMap.entrySet()) {
+            DcMotor motor = entry.getKey();
+            Double[] values = entry.getValue();
+            double forward_backward = values[0] * right_stick_y;
+            double strafe = values[1] * right_stick_x;
+            double turn = values[2] * left_stick_x;
+            double power = forward_backward + strafe + turn;
+            motor.setPower(Math.max(-1, Math.min(power, 1)));
+        }
+    }
+
+    public void performAction(@NonNull Action action) {
+        switch (action) {
+            case CloseClaw:
+                close_claw();
+                break;
+            case OpenClaw:
+                open_claw();
+                break;
+            case RetractArm:
+                retract_arm();
+                break;
+            case ExtendArm:
+                extend_arm();
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void close_claw() {
+        wobbleFinger.setPosition(0.6);
+    }
+
+    public void open_claw() {
+        wobbleFinger.setPosition(0.0);
+    }
+
+    public void retract_arm() {
+        wobble.setPosition(0.1);
+    }
+
+    public void extend_arm() {
+        wobble.setPosition(0.0);
+    }
+
+    public int greg_argb() {
+        return greg.argb();
     }
 }
 

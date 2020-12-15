@@ -34,10 +34,6 @@ public class BraveNewWorld extends OpMode {
     @NonNull
     final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
-    @NonNull
-    double wobble_pos = 0;
-    double finger_pos = 0;
-
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -76,31 +72,25 @@ public class BraveNewWorld extends OpMode {
         ));
     }
 
-    private void setPower(@NonNull DcMotor motor) {
-        Double[] values = robot.motorMap.get(motor);
-        double forward_backward = values[0] * gamepad1.right_stick_y;
-        double strafe = values[1] * gamepad1.right_stick_x;
-        double turn = values[2] * gamepad1.left_stick_x;
-        double power = forward_backward + strafe + turn;
-        motor.setPower(Math.max(-1, Math.min(power, 1)));
-    }
-
     @Override
     public void loop() {
         robot.hardware_loop();
 
-        setPower(robot.frontright);
-        setPower(robot.backright);
-        setPower(robot.frontleft);
-        setPower(robot.backleft);
+        robot.chassis(gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
 
         float[] hsv = {0,0,0};
-        Color.colorToHSV(robot.greg.argb(), hsv);
+        Color.colorToHSV(robot.greg_argb(), hsv);
 
-        wobble_pos += 0.01 * gamepad2.left_stick_y;
-        robot.wobble.setPosition(wobble_pos);
-        finger_pos += 0.02 * gamepad2.left_stick_x;
-        robot.wobbleFinger.setPosition(finger_pos);
+        if (gamepad2.left_stick_y > 0.1) {
+            robot.retract_arm();
+        } else if (gamepad2.left_stick_y < -0.1) {
+            robot.extend_arm();
+        }
+        if (gamepad2.left_stick_x > 0.1) {
+            robot.open_claw();
+        } else if (gamepad2.left_stick_x < -0.1) {
+            robot.close_claw();
+        }
 
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x);
