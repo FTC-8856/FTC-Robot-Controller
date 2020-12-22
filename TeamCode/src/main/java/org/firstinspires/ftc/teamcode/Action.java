@@ -6,4 +6,7 @@ public enum Action {
     CloseClaw,
     RetractArm,
     ExtendArm,
+    StartIntake,
+    StopIntake,
+    ReverseIntake,
 }

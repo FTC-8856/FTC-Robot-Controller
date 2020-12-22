@@ -4,33 +4,16 @@ import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-
-import com.qualcomm.hardware.bosch.BNO055IMU;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import java.util.Map;
-import java.util.HashMap;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 @TeleOp(name = "Brave New World", group = "Pushbot")
 
 public class BraveNewWorld extends OpMode {
 
-    /* Declare OpMode members. */
-    //AndroidOrientation compass(); // Android Orientation Object Declaration
-    //AndroidTextToSpeech speek(); // Text to Speech Object
     @NonNull
     final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
@@ -68,7 +51,7 @@ public class BraveNewWorld extends OpMode {
         robot.startIMU(new Position(
                 DistanceUnit.METER,
                 0.0, 0.0, 0.0 // <--- starting position
-                ,0
+                , 0
         ));
     }
 
@@ -78,7 +61,7 @@ public class BraveNewWorld extends OpMode {
 
         robot.chassis(gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
 
-        float[] hsv = {0,0,0};
+        float[] hsv = {0, 0, 0};
         Color.colorToHSV(robot.greg_argb(), hsv);
 
         if (gamepad2.left_stick_y > 0.1) {
@@ -90,6 +73,15 @@ public class BraveNewWorld extends OpMode {
             robot.open_claw();
         } else if (gamepad2.left_stick_x < -0.1) {
             robot.close_claw();
+        }
+        if (gamepad2.a) {
+            robot.start_intake();
+        }
+        if (gamepad2.b) {
+            robot.reverse_intake();
+        }
+        if (gamepad2.x) {
+            robot.stop_intake();
         }
 
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);

@@ -29,22 +29,25 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import org.firstinspires.ftc.teamcode.Action;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.openftc.easyopencv.*;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,15 +55,26 @@ import java.util.Map;
  * This is NOT an opmode.
  */
 public class RobotHardware {
-    /* Public OpMode members. */
+    private static final Double CLOSE_CLAW = 0.6;
+    private static final Double OPEN_CLAW = 0.0;
+    private static final Double ARM_IN = 0.0;
+    private static final Double MID_ARM = 0.3;
+    private static final Double ARM_OUT = 0.73;
+    private static final Double INTAKE_POWER = 1.0;
+    private final ElapsedTime period = new ElapsedTime();
     @Nullable
-    private DcMotor frontleft = null;
+    private final OpenCvCamera webcam = null;
+    /* IMU public variables */
+    boolean isImuEnabled = false;
+    BNO055IMU imu;
+    BNO055IMU.Parameters imuParameters;
+    Position pos;
+    Orientation rot;
+    @NonNull
+    Map<DcMotor, Double[]> motorMap = new HashMap<>();
+    /* local OpMode members. */
     @Nullable
-    private DcMotor frontright = null;
-    @Nullable
-    private DcMotor backleft = null;
-    @Nullable
-    private DcMotor backright = null;
+    HardwareMap hwMap = null;
     @Nullable
     private DcMotor intake = null;
     @Nullable
@@ -69,23 +83,6 @@ public class RobotHardware {
     private Servo wobbleFinger = null;
     @Nullable
     private ColorSensor greg = null;
-    @Nullable
-    private OpenCvCamera webcam = null;
-
-    /* IMU public variables */
-    boolean isImuEnabled = false;
-    BNO055IMU imu;
-    BNO055IMU.Parameters imuParameters;
-    Position pos;
-    Orientation rot;
-
-    @NonNull
-    Map<DcMotor, Double[]> motorMap = new HashMap<>();
-
-    /* local OpMode members. */
-    @Nullable
-    HardwareMap hwMap = null;
-    private final ElapsedTime period = new ElapsedTime();
 
     /* Constructor */
     public RobotHardware() {
@@ -98,10 +95,11 @@ public class RobotHardware {
         hwMap = ahwMap;
 
         // Define and Initialize Motors
-        frontleft = hwMap.get(DcMotor.class, "frontleft");
-        frontright = hwMap.get(DcMotor.class, "frontright");
-        backleft = hwMap.get(DcMotor.class, "backleft");
-        backright = hwMap.get(DcMotor.class, "backright");
+        /* Public OpMode members. */
+        DcMotor frontleft = hwMap.get(DcMotor.class, "frontleft");
+        DcMotor frontright = hwMap.get(DcMotor.class, "frontright");
+        DcMotor backleft = hwMap.get(DcMotor.class, "backleft");
+        DcMotor backright = hwMap.get(DcMotor.class, "backright");
         intake = hwMap.get(DcMotor.class, "intake"); // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
         wobble = hwMap.get(Servo.class, "wobble"); // Wobble goal actuator arm rotator
         wobbleFinger = hwMap.get(Servo.class, "wobbleFinger"); // Wobble goal actuator arm "finger" grabber joint servo
@@ -112,14 +110,7 @@ public class RobotHardware {
         backleft.setDirection(DcMotor.Direction.REVERSE);
         frontleft.setDirection(DcMotor.Direction.REVERSE);
 
-        // Set all motors to zero power
-        frontleft.setPower(0);
-        frontright.setPower(0);
-        backleft.setPower(0);
-        backright.setPower(0);
-        intake.setPower(0);
-        wobble.setPosition(0);
-        wobbleFinger.setPosition(0);
+
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
@@ -129,7 +120,7 @@ public class RobotHardware {
         backright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        if(features.contains("imu")){
+        if (features.contains("imu")) {
             isImuEnabled = true;
 
             imu = hwMap.get(BNO055IMU.class, "imu");
@@ -155,11 +146,16 @@ public class RobotHardware {
         //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
-        //                                          F/B   L/R   TURN
-        motorMap.put(frontright, new Double[]{1.0,  1.0,  1.0});
-        motorMap.put(backright, new Double[]{-1.0,  1.0,  1.0});
-        motorMap.put(frontleft, new Double[]{-1.0,  1.0, -1.0});
-        motorMap.put(backleft, new Double[] { 1.0,  1.0, -1.0});
+        //                                    F/B   L/R   TURN
+        motorMap.put(frontright, new Double[]{-1.0, -0.935, -1.0});
+        motorMap.put(backright, new Double[]{-1.0, 1.0, -1.0});
+        motorMap.put(frontleft, new Double[]{-1.0, 0.935, 1.0});
+        motorMap.put(backleft, new Double[]{-1.0, -1.0, 1.0});
+
+        // Set all motors to zero power
+        chassis(0, 0, 0);
+        arm_startup();
+        close_claw();
     }
 
     /* We'll come back to this function
@@ -170,15 +166,15 @@ public class RobotHardware {
     }
      */
 
-    public void hardware_loop(){
-        if(isImuEnabled) {
+    public void hardware_loop() {
+        if (isImuEnabled) {
             rot = imu.getAngularOrientation();
             pos = imu.getPosition();
         }
     }
 
-    public void hardware_stop(){
-        if(isImuEnabled) {
+    public void hardware_stop() {
+        if (isImuEnabled) {
             imu.stopAccelerationIntegration();
         }
     }
@@ -187,23 +183,21 @@ public class RobotHardware {
         return OpenCvCameraFactory.getInstance().createWebcam(cameraID);
     }
 
-    public void startIMU(Position init_pos){
+    public void startIMU(Position init_pos) {
         imu.startAccelerationIntegration(
                 init_pos,
-                new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0 , 0), // we don't need to worry about initial velocity. It's always going to be 0
+                new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0, 0), // we don't need to worry about initial velocity. It's always going to be 0
                 10 // maximum possible poll interval ~~ 100Hz sample rate
         );
     }
 
     public void chassis(double right_stick_y, double right_stick_x, double left_stick_x) {
-        for (Map.Entry<DcMotor, Double[]> entry: motorMap.entrySet()) {
-            DcMotor motor = entry.getKey();
-            Double[] values = entry.getValue();
-            double forward_backward = values[0] * right_stick_y;
-            double strafe = values[1] * right_stick_x;
-            double turn = values[2] * left_stick_x;
-            double power = forward_backward + strafe + turn;
-            motor.setPower(Math.max(-1, Math.min(power, 1)));
+        if (right_stick_y != 0 || right_stick_x != 0 || left_stick_x != 0) {
+            for (Map.Entry<DcMotor, Double[]> entry : motorMap.entrySet()) {
+                Double[] values = entry.getValue();
+                double power = values[0] * right_stick_y + values[1] * right_stick_x + values[2] * left_stick_x;;
+                entry.getKey().setPower(Math.max(-1, Math.min(power, 1)));
+            }
         }
     }
 
@@ -221,29 +215,72 @@ public class RobotHardware {
             case ExtendArm:
                 extend_arm();
                 break;
+            case StartIntake:
+                start_intake();
+                break;
+            case StopIntake:
+                stop_intake();
+                break;
+            case ReverseIntake:
+                reverse_intake();
+                break;
             default:
                 break;
         }
     }
 
     public void close_claw() {
-        wobbleFinger.setPosition(0.6);
+        wobbleFinger.setPosition(CLOSE_CLAW);
     }
 
     public void open_claw() {
-        wobbleFinger.setPosition(0.0);
+        wobbleFinger.setPosition(OPEN_CLAW);
+    }
+
+    public void arm_startup() {
+        wobble.setPosition(ARM_IN);
     }
 
     public void retract_arm() {
-        wobble.setPosition(0.1);
+        wobble.setPosition(MID_ARM);
     }
 
     public void extend_arm() {
-        wobble.setPosition(0.0);
+        wobble.setPosition(ARM_OUT);
+    }
+
+    public void start_intake() {
+        intake.setPower(INTAKE_POWER);
+    }
+
+    public void stop_intake() {
+        intake.setPower(0);
+    }
+
+    public void reverse_intake() {
+        intake.setPower(-1 * INTAKE_POWER);
     }
 
     public int greg_argb() {
         return greg.argb();
     }
+/*
+    public void set_frontleft(Double d) {
+        motorMap..setPower(d);
+    }
+
+    public void set_frontright(Double d) {
+        frontright.setPower(d);
+    }
+
+    public void set_backright(Double d) {
+        backright.setPower(d);
+    }
+
+    public void set_backleft(Double d) {
+        backleft.setPower(d);
+    }
+   
+ */
 }
 
