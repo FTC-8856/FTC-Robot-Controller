@@ -74,6 +74,15 @@ public class BraveNewWorld extends OpMode {
         } else if (gamepad2.left_stick_x < -0.1) {
             robot.close_claw();
         }
+        if (gamepad1.y) {
+            robot.fire_high();
+        }
+        if (gamepad1.x) {
+            robot.fire_mid();
+        }
+        if (gamepad1.a) {
+            robot.fire_low();
+        }
         if (gamepad2.a) {
             robot.start_intake();
         }

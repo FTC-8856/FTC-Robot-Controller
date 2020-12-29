@@ -9,4 +9,7 @@ public enum Action {
     StartIntake,
     StopIntake,
     ReverseIntake,
+    FireLow,
+    FireMid,
+    FireHigh,
 }

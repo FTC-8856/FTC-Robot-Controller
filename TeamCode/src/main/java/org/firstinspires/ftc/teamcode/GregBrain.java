@@ -60,26 +60,36 @@ public class GregBrain extends OpMode {
 
     @NonNull
     private Action decodeFloat(float f) {
-        if (f >= 0.125 && f < 0.25) {
+        double f_11 = f / 11.0;
+        if (f_11 >= 0 && f_11 < 1) {
             return Action.OpenClaw;
         }
-        if (f >= 0.25 && f < 0.375) {
+        if (f_11 >= 1 && f_11 < 2) {
             return Action.CloseClaw;
         }
-        if (f >= 0.375 && f < 0.5) {
+        if (f_11 >= 2 && f_11 < 3) {
             return Action.RetractArm;
         }
-        if (f >= 0.5 && f < 0.625) {
+        if (f_11 >= 3 && f_11 < 4) {
             return Action.ExtendArm;
         }
-        if (f >= 0.625 && f < 0.75) {
+        if (f_11 >= 4 && f_11 < 5) {
             return Action.StartIntake;
         }
-        if (f >= 0.75 && f < 0.875) {
+        if (f_11 >= 5 && f_11 < 6) {
             return Action.StopIntake;
         }
-        if (f >= 0.875 && f < 1.0) {
+        if (f_11 >= 6 && f_11 < 7) {
             return Action.ReverseIntake;
+        }
+        if (f_11 >= 7 && f_11 < 8) {
+            return Action.FireLow;
+        }
+        if (f_11 >= 8 && f_11 < 9) {
+            return Action.FireMid;
+        }
+        if (f_11 >= 9 && f_11 < 10) {
+            return Action.FireHigh;
         }
         return Action.None;
     }

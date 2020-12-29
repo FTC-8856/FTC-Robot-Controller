@@ -47,7 +47,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,7 +108,6 @@ public class RobotHardware {
         //
         backleft.setDirection(DcMotor.Direction.REVERSE);
         frontleft.setDirection(DcMotor.Direction.REVERSE);
-
 
 
         // Set all motors to run without encoders.
@@ -195,7 +193,7 @@ public class RobotHardware {
         if (right_stick_y != 0 || right_stick_x != 0 || left_stick_x != 0) {
             for (Map.Entry<DcMotor, Double[]> entry : motorMap.entrySet()) {
                 Double[] values = entry.getValue();
-                double power = values[0] * right_stick_y + values[1] * right_stick_x + values[2] * left_stick_x;;
+                double power = values[0] * right_stick_y + values[1] * right_stick_x + values[2] * left_stick_x;
                 entry.getKey().setPower(Math.max(-1, Math.min(power, 1)));
             }
         }
@@ -223,6 +221,15 @@ public class RobotHardware {
                 break;
             case ReverseIntake:
                 reverse_intake();
+                break;
+            case FireLow:
+                fire_low();
+                break;
+            case FireMid:
+                fire_mid();
+                break;
+            case FireHigh:
+                fire_high();
                 break;
             default:
                 break;
@@ -261,26 +268,17 @@ public class RobotHardware {
         intake.setPower(-1 * INTAKE_POWER);
     }
 
+    public void fire_low() {
+    }
+
+    public void fire_mid() {
+    }
+
+    public void fire_high() {
+    }
+
     public int greg_argb() {
         return greg.argb();
     }
-/*
-    public void set_frontleft(Double d) {
-        motorMap..setPower(d);
-    }
-
-    public void set_frontright(Double d) {
-        frontright.setPower(d);
-    }
-
-    public void set_backright(Double d) {
-        backright.setPower(d);
-    }
-
-    public void set_backleft(Double d) {
-        backleft.setPower(d);
-    }
-   
- */
 }
 
