@@ -64,16 +64,16 @@ public class RobotHardware {
     @Nullable
     private final OpenCvCamera webcam = null;
     /* IMU public variables */
-    boolean isImuEnabled = false;
-    BNO055IMU imu;
-    BNO055IMU.Parameters imuParameters;
-    Position pos;
-    Orientation rot;
+    private boolean isImuEnabled = false;
+    private BNO055IMU imu;
+    private BNO055IMU.Parameters imuParameters;
+    private Position pos;
+    private Orientation rot;
     @NonNull
-    Map<DcMotor, Double[]> motorMap = new HashMap<>();
+    private final Map<DcMotor, Double[]> motorMap = new HashMap<>();
     /* local OpMode members. */
     @Nullable
-    HardwareMap hwMap = null;
+    private HardwareMap hwMap = null;
     @Nullable
     private DcMotor intake = null;
     @Nullable
@@ -279,6 +279,18 @@ public class RobotHardware {
 
     public int greg_argb() {
         return greg.argb();
+    }
+
+    public BNO055IMU get_imu() {
+        return this.imu;
+    }
+
+    public Position get_pos() {
+        return this.pos;
+    }
+
+    public Orientation get_rot() {
+        return this.rot;
     }
 }
 

@@ -42,9 +42,9 @@ public class GregBrain extends OpMode {
         robot.hardware_loop();
         float[] input_layer = new float[]{
                 (float) gametime.seconds() / 30 // 30 second autonomous period
-                , (float) robot.pos.x
-                , (float) robot.pos.y
-                , robot.rot.thirdAngle // Heading
+                , (float) robot.get_pos().x
+                , (float) robot.get_pos().y
+                , robot.get_rot().thirdAngle // Heading
         };
         float[] output_layer = new float[4]; // Basic Joystick controls for now
         brain.run(input_layer, output_layer); // activate the  t h i n k i n g

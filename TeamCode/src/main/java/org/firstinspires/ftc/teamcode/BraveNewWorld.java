@@ -36,10 +36,10 @@ public class BraveNewWorld extends OpMode {
     public void init_loop() {
         telemetry.addData("Brave New World", "Groovy");
         telemetry.addData("Version", "0.21");
-        telemetry.addData("Accelerometer", robot.imu.isAccelerometerCalibrated());
-        telemetry.addData("Gyro", robot.imu.isGyroCalibrated());
-        telemetry.addData("Magnetometer", robot.imu.isMagnetometerCalibrated());
-        telemetry.addData("Calib. Status", robot.imu.getCalibrationStatus().toString());
+        telemetry.addData("Accelerometer", robot.get_imu().isAccelerometerCalibrated());
+        telemetry.addData("Gyro", robot.get_imu().isGyroCalibrated());
+        telemetry.addData("Magnetometer", robot.get_imu().isMagnetometerCalibrated());
+        telemetry.addData("Calib. Status", robot.get_imu().getCalibrationStatus().toString());
         telemetry.update();
     }
 
@@ -96,8 +96,8 @@ public class BraveNewWorld extends OpMode {
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x);
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x);
-        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.rot.thirdAngle, robot.rot.secondAngle, robot.rot.firstAngle);
-        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.pos.x, robot.pos.y, robot.pos.z);
+        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.get_rot().thirdAngle, robot.get_rot().secondAngle, robot.get_rot().firstAngle);
+        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.get_pos().x, robot.get_pos().y, robot.get_pos().z);
         telemetry.addData("HSV", "(%.2f, %.2f, %.2f)", hsv[0], hsv[1], hsv[2]);
         telemetry.update();
     }

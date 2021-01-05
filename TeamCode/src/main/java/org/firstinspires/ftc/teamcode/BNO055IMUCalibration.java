@@ -89,7 +89,7 @@ import java.util.Locale;
  * button on the gamepad to write the calibration to a file. That file can then be indicated
  * later when running an opmode which uses the IMU.</p>
  *
- * <p>Note: if your intended uses of the IMU do not include use of all its sensors (for exmaple,
+ * <p>Note: if your intended uses of the IMU do not include use of all its sensors (for example,
  * you might not use the magnetometer), then it makes little sense for you to wait for full
  * calibration of the sensors you are not using before saving the calibration data. Indeed,
  * it appears that in a SensorMode that doesn't use the magnetometer (for example), the
