@@ -58,7 +58,7 @@ public class RobotHardware {
     private static final Double OPEN_CLAW = 0.0;
     private static final Double ARM_IN = 0.0;
     private static final Double MID_ARM = 0.3;
-    private static final Double ARM_OUT = 0.73;
+    private static final Double ARM_OUT = 0.95;
     private static final Double INTAKE_POWER = 1.0;
     private final ElapsedTime period = new ElapsedTime();
     @Nullable
@@ -144,7 +144,7 @@ public class RobotHardware {
         //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
-        //                                    F/B   L/R   TURN
+        //                                     F/B    L/R   TURN
         motorMap.put(frontright, new Double[]{-1.0, -0.935, -1.0});
         motorMap.put(backright, new Double[]{-1.0, 1.0, -1.0});
         motorMap.put(frontleft, new Double[]{-1.0, 0.935, 1.0});
@@ -190,13 +190,11 @@ public class RobotHardware {
     }
 
     public void chassis(double right_stick_y, double right_stick_x, double left_stick_x) {
-        if (right_stick_y != 0 || right_stick_x != 0 || left_stick_x != 0) {
             for (Map.Entry<DcMotor, Double[]> entry : motorMap.entrySet()) {
                 Double[] values = entry.getValue();
                 double power = values[0] * right_stick_y + values[1] * right_stick_x + values[2] * left_stick_x;
                 entry.getKey().setPower(Math.max(-1, Math.min(power, 1)));
             }
-        }
     }
 
     public void performAction(@NonNull Action action) {
@@ -208,10 +206,10 @@ public class RobotHardware {
                 open_claw();
                 break;
             case RetractArm:
-                retract_arm();
+                arm_power(0.0);
                 break;
             case ExtendArm:
-                extend_arm();
+                arm_power(1.0);
                 break;
             case StartIntake:
                 start_intake();
@@ -248,12 +246,8 @@ public class RobotHardware {
         wobble.setPosition(ARM_IN);
     }
 
-    public void retract_arm() {
-        wobble.setPosition(MID_ARM);
-    }
-
-    public void extend_arm() {
-        wobble.setPosition(ARM_OUT);
+    public void arm_power(Double d) {
+        wobble.setPosition(MID_ARM + .5*((d+1) * (ARM_OUT - MID_ARM)));
     }
 
     public void start_intake() {

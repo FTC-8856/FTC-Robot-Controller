@@ -64,15 +64,14 @@ public class BraveNewWorld extends OpMode {
         float[] hsv = {0, 0, 0};
         Color.colorToHSV(robot.greg_argb(), hsv);
 
-        if (gamepad2.left_stick_y > 0.1) {
-            robot.retract_arm();
-        } else if (gamepad2.left_stick_y < -0.1) {
-            robot.extend_arm();
-        }
-        if (gamepad2.left_stick_x > 0.1) {
+        robot.arm_power((double) gamepad2.left_stick_y);
+        if (gamepad2.right_bumper) {
             robot.open_claw();
-        } else if (gamepad2.left_stick_x < -0.1) {
+        } else if (gamepad2.right_trigger > 0.1) {
             robot.close_claw();
+        }
+        if (gamepad2.back) {
+            robot.arm_startup();
         }
         if (gamepad1.y) {
             robot.fire_high();
