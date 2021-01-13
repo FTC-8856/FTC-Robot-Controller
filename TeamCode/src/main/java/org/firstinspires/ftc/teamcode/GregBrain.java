@@ -39,12 +39,12 @@ public class GregBrain extends OpMode {
 
     @Override
     public void loop() {
-        robot.hardware_loop();
+        robot.hardwareLoop();
         float[] input_layer = new float[]{
                 (float) gametime.seconds() / 30 // 30 second autonomous period
-                , (float) robot.get_pos().x
-                , (float) robot.get_pos().y
-                , robot.get_rot().thirdAngle // Heading
+                , (float) robot.getPos().x
+                , (float) robot.getPos().y
+                , robot.getRot().thirdAngle // Heading
         };
         float[] output_layer = new float[4]; // Basic Joystick controls for now
         brain.run(input_layer, output_layer); // activate the  t h i n k i n g
@@ -55,43 +55,43 @@ public class GregBrain extends OpMode {
     @Override
     public void stop() {
         brain.close();
-        robot.hardware_stop();
+        robot.hardwareStop();
     }
 
     @NonNull
     private Action decodeFloat(float f) {
         double f_11 = f / 11.0;
         if (f_11 >= 0 && f_11 < 1) {
-            return Action.OpenClaw;
+            return Action.OPEN_CLAW;
         }
         if (f_11 >= 1 && f_11 < 2) {
-            return Action.CloseClaw;
+            return Action.CLOSE_CLAW;
         }
         if (f_11 >= 2 && f_11 < 3) {
-            return Action.RetractArm;
+            return Action.RETRACT_ARM;
         }
         if (f_11 >= 3 && f_11 < 4) {
-            return Action.ExtendArm;
+            return Action.EXTEND_ARM;
         }
         if (f_11 >= 4 && f_11 < 5) {
-            return Action.StartIntake;
+            return Action.START_INTAKE;
         }
         if (f_11 >= 5 && f_11 < 6) {
-            return Action.StopIntake;
+            return Action.STOP_INTAKE;
         }
         if (f_11 >= 6 && f_11 < 7) {
-            return Action.ReverseIntake;
+            return Action.REVERSE_INTAKE;
         }
         if (f_11 >= 7 && f_11 < 8) {
-            return Action.FireLow;
+            return Action.FIRE_LOW;
         }
         if (f_11 >= 8 && f_11 < 9) {
-            return Action.FireMid;
+            return Action.FIRE_MID;
         }
         if (f_11 >= 9 && f_11 < 10) {
-            return Action.FireHigh;
+            return Action.FIRE_HIGH;
         }
-        return Action.None;
+        return Action.NONE;
     }
 
 

@@ -25,7 +25,7 @@ public class Insecticide extends OpMode {
 
     @Override
     public void loop() {
-        robot.hardware_loop();
+        robot.hardwareLoop();
         /*
         if (gamepad1.a) {
             robot.set_backleft(1.0);
@@ -47,6 +47,6 @@ public class Insecticide extends OpMode {
      */
     @Override
     public void stop() {
-        robot.hardware_stop();
+        robot.hardwareStop();
     }
 }

@@ -17,6 +17,8 @@ public class BraveNewWorld extends OpMode {
     @NonNull
     final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
+    @NonNull
+    FirePosition firePos = FirePosition.LOW;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -36,10 +38,10 @@ public class BraveNewWorld extends OpMode {
     public void init_loop() {
         telemetry.addData("Brave New World", "Groovy");
         telemetry.addData("Version", "0.21");
-        telemetry.addData("Accelerometer", robot.get_imu().isAccelerometerCalibrated());
-        telemetry.addData("Gyro", robot.get_imu().isGyroCalibrated());
-        telemetry.addData("Magnetometer", robot.get_imu().isMagnetometerCalibrated());
-        telemetry.addData("Calib. Status", robot.get_imu().getCalibrationStatus().toString());
+        telemetry.addData("Accelerometer", robot.getImu().isAccelerometerCalibrated());
+        telemetry.addData("Gyro", robot.getImu().isGyroCalibrated());
+        telemetry.addData("Magnetometer", robot.getImu().isMagnetometerCalibrated());
+        telemetry.addData("Calib. Status", robot.getImu().getCalibrationStatus().toString());
         telemetry.update();
     }
 
@@ -57,47 +59,63 @@ public class BraveNewWorld extends OpMode {
 
     @Override
     public void loop() {
-        robot.hardware_loop();
+        robot.hardwareLoop();
 
         robot.chassis(gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
 
         float[] hsv = {0, 0, 0};
-        Color.colorToHSV(robot.greg_argb(), hsv);
+        Color.colorToHSV(robot.gregArgb(), hsv);
 
-        robot.arm_power((double) gamepad2.left_stick_y);
+        robot.armPower((double) gamepad2.left_stick_y);
         if (gamepad2.right_bumper) {
-            robot.open_claw();
+            robot.openClaw();
         } else if (gamepad2.right_trigger > 0.1) {
-            robot.close_claw();
+            robot.closeClaw();
         }
         if (gamepad2.back) {
-            robot.arm_startup();
+            robot.armStartup();
         }
-        if (gamepad1.y) {
-            robot.fire_high();
+        if (gamepad2.right_stick_button) {
+            if (robot.areFlywheelsRunning()) {
+                robot.stopFlywheels();
+            } else {
+                robot.startFlywheels();
+            }
         }
-        if (gamepad1.x) {
-            robot.fire_mid();
+        if (gamepad2.dpad_down) {
+            if (firePos == FirePosition.LOW) {
+                firePos = FirePosition.MEDIUM;
+            } else {
+                firePos = FirePosition.HIGH;
+            }
         }
-        if (gamepad1.a) {
-            robot.fire_low();
+        if (gamepad2.dpad_up) {
+            if (firePos == FirePosition.HIGH) {
+                firePos = FirePosition.MEDIUM;
+            } else {
+                firePos = FirePosition.LOW;
+            }
+        }
+        if (gamepad2.left_stick_button) {
+            robot.fire(firePos);
         }
         if (gamepad2.a) {
-            robot.start_intake();
+            robot.startIntake();
         }
         if (gamepad2.b) {
-            robot.reverse_intake();
+            robot.reverseIntake();
         }
         if (gamepad2.x) {
-            robot.stop_intake();
+            robot.stopIntake();
         }
 
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x);
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x);
-        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.get_rot().thirdAngle, robot.get_rot().secondAngle, robot.get_rot().firstAngle);
-        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.get_pos().x, robot.get_pos().y, robot.get_pos().z);
+        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.getRot().thirdAngle, robot.getRot().secondAngle, robot.getRot().firstAngle);
+        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.getPos().x, robot.getPos().y, robot.getPos().z);
         telemetry.addData("HSV", "(%.2f, %.2f, %.2f)", hsv[0], hsv[1], hsv[2]);
+        telemetry.addData("Fire position", "%s", firePos);
         telemetry.update();
     }
 
@@ -106,7 +124,7 @@ public class BraveNewWorld extends OpMode {
      */
     @Override
     public void stop() {
-        robot.hardware_stop();
+        robot.hardwareStop();
         telemetry.addData("Exit", "Goodest Good Job!");
         telemetry.update();
     }

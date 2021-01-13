@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @Autonomous(name = "Park on line")
 public class ParkOnLine extends LinearOpMode {
-    RobotHardware robot;
     private static final Double INCHES_PER_SECOND = 52.5;
+    RobotHardware robot;
 
     private void waitFor(long ms) {
         try {
@@ -26,6 +26,6 @@ public class ParkOnLine extends LinearOpMode {
 
     private void drive_for(Double inches) {
         robot.chassis(-1.0, 0, 0);
-        waitFor((long)(1000 * inches / INCHES_PER_SECOND));
+        waitFor((long) (1000 * inches / INCHES_PER_SECOND));
     }
 }

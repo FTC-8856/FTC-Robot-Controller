@@ -63,14 +63,14 @@ public class RobotHardware {
     private final ElapsedTime period = new ElapsedTime();
     @Nullable
     private final OpenCvCamera webcam = null;
+    @NonNull
+    private final Map<DcMotor, Double[]> motorMap = new HashMap<>();
     /* IMU public variables */
     private boolean isImuEnabled = false;
     private BNO055IMU imu;
     private BNO055IMU.Parameters imuParameters;
     private Position pos;
     private Orientation rot;
-    @NonNull
-    private final Map<DcMotor, Double[]> motorMap = new HashMap<>();
     /* local OpMode members. */
     @Nullable
     private HardwareMap hwMap = null;
@@ -85,7 +85,7 @@ public class RobotHardware {
 
     /* Constructor */
     public RobotHardware() {
-
+        // Does nothing
     }
 
     /* Initialize standard Hardware interfaces */
@@ -152,26 +152,26 @@ public class RobotHardware {
 
         // Set all motors to zero power
         chassis(0, 0, 0);
-        arm_startup();
-        close_claw();
+        armStartup();
+        closeClaw();
     }
 
     /* We'll come back to this function
-    public void hardware_start(){
+    public void hardwareStart(){
         if(isImuEnabled) {
             imu.startAccelerationIntegration();
         }
     }
      */
 
-    public void hardware_loop() {
+    public void hardwareLoop() {
         if (isImuEnabled) {
             rot = imu.getAngularOrientation();
             pos = imu.getPosition();
         }
     }
 
-    public void hardware_stop() {
+    public void hardwareStop() {
         if (isImuEnabled) {
             imu.stopAccelerationIntegration();
         }
@@ -181,109 +181,124 @@ public class RobotHardware {
         return OpenCvCameraFactory.getInstance().createWebcam(cameraID);
     }
 
-    public void startIMU(Position init_pos) {
+    public void startIMU(Position initPos) {
         imu.startAccelerationIntegration(
-                init_pos,
+                initPos,
                 new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0, 0), // we don't need to worry about initial velocity. It's always going to be 0
                 10 // maximum possible poll interval ~~ 100Hz sample rate
         );
     }
 
-    public void chassis(double right_stick_y, double right_stick_x, double left_stick_x) {
-            for (Map.Entry<DcMotor, Double[]> entry : motorMap.entrySet()) {
-                Double[] values = entry.getValue();
-                double power = values[0] * right_stick_y + values[1] * right_stick_x + values[2] * left_stick_x;
-                entry.getKey().setPower(Math.max(-1, Math.min(power, 1)));
-            }
+    public void chassis(double rightStickY, double rightStickX, double leftStickX) {
+        for (Map.Entry<DcMotor, Double[]> entry : motorMap.entrySet()) {
+            Double[] values = entry.getValue();
+            double power = values[0] * rightStickY + values[1] * rightStickX + values[2] * leftStickX;
+            entry.getKey().setPower(Math.max(-1, Math.min(power, 1)));
+        }
     }
 
     public void performAction(@NonNull Action action) {
         switch (action) {
-            case CloseClaw:
-                close_claw();
+            case CLOSE_CLAW:
+                closeClaw();
                 break;
-            case OpenClaw:
-                open_claw();
+            case OPEN_CLAW:
+                openClaw();
                 break;
-            case RetractArm:
-                arm_power(0.0);
+            case RETRACT_ARM:
+                armPower(0.0);
                 break;
-            case ExtendArm:
-                arm_power(1.0);
+            case EXTEND_ARM:
+                armPower(1.0);
                 break;
-            case StartIntake:
-                start_intake();
+            case START_INTAKE:
+                startIntake();
                 break;
-            case StopIntake:
-                stop_intake();
+            case STOP_INTAKE:
+                stopIntake();
                 break;
-            case ReverseIntake:
-                reverse_intake();
+            case REVERSE_INTAKE:
+                reverseIntake();
                 break;
-            case FireLow:
-                fire_low();
+            case FIRE_LOW:
+                fire(FirePosition.LOW);
                 break;
-            case FireMid:
-                fire_mid();
+            case FIRE_MID:
+                fire(FirePosition.MEDIUM);
                 break;
-            case FireHigh:
-                fire_high();
+            case FIRE_HIGH:
+                fire(FirePosition.HIGH);
                 break;
             default:
                 break;
         }
     }
 
-    public void close_claw() {
+    public void closeClaw() {
         wobbleFinger.setPosition(CLOSE_CLAW);
     }
 
-    public void open_claw() {
+    public void openClaw() {
         wobbleFinger.setPosition(OPEN_CLAW);
     }
 
-    public void arm_startup() {
+    public void armStartup() {
         wobble.setPosition(ARM_IN);
     }
 
-    public void arm_power(Double d) {
-        wobble.setPosition(MID_ARM + .5*((d+1) * (ARM_OUT - MID_ARM)));
+    public void armPower(Double d) {
+        wobble.setPosition(MID_ARM + .5 * ((d + 1) * (ARM_OUT - MID_ARM)));
     }
 
-    public void start_intake() {
+    public void startIntake() {
         intake.setPower(INTAKE_POWER);
     }
 
-    public void stop_intake() {
+    public void stopIntake() {
         intake.setPower(0);
     }
 
-    public void reverse_intake() {
+    public void reverseIntake() {
         intake.setPower(-1 * INTAKE_POWER);
     }
 
-    public void fire_low() {
+    public void fire(FirePosition firePos) {
+        if (firePos == FirePosition.HIGH) {
+            // To-do
+        }
+        if (firePos == FirePosition.MEDIUM) {
+            // To-do
+        }
+        if (firePos == FirePosition.LOW) {
+            // To-do
+        }
     }
 
-    public void fire_mid() {
+    public void startFlywheels() {
+
     }
 
-    public void fire_high() {
+    public void stopFlywheels() {
+
     }
 
-    public int greg_argb() {
+    public boolean areFlywheelsRunning() {
+        return true;
+    }
+
+    public int gregArgb() {
         return greg.argb();
     }
 
-    public BNO055IMU get_imu() {
+    public BNO055IMU getImu() {
         return this.imu;
     }
 
-    public Position get_pos() {
+    public Position getPos() {
         return this.pos;
     }
 
-    public Orientation get_rot() {
+    public Orientation getRot() {
         return this.rot;
     }
 }
