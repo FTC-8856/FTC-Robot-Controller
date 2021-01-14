@@ -4,146 +4,128 @@ import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
-@SuppressWarnings("unused")
 @TeleOp(name = "Brave New World", group = "Pushbot")
-class BraveNewWorld extends OpMode {
+
+public class BraveNewWorld extends OpMode {
 
     @NonNull
-    private final
-    RobotHardware robot = new RobotHardware();
+    final
+    RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
     @NonNull
-    private
     FirePosition firePos = FirePosition.LOW;
-
-    BraveNewWorld() {
-    }
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
-    public final void init() {
+    public void init() {
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
          */
-        this.robot.init(this.hardwareMap, "imu");
+        robot.init(hardwareMap, "imu");
     }
 
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
      */
     @Override
-    public final void init_loop() {
-        this.telemetry.addData("Brave New World", "Groovy");
-        this.telemetry.addData("Version", "0.21");
-        final BNO055IMU imu = this.robot.getImu();
-        final boolean accelCalibrated = imu.isAccelerometerCalibrated();
-        this.telemetry.addData("Accelerometer",
-                accelCalibrated);
-        final boolean gyroCalibrated = imu.isGyroCalibrated();
-        this.telemetry.addData("Gyro", gyroCalibrated);
-        final boolean magnetCalibrated = imu.isMagnetometerCalibrated();
-        this.telemetry.addData("Magnetometer",
-                magnetCalibrated);
-        final BNO055IMU.CalibrationStatus calibrationStatus = imu.getCalibrationStatus();
-        final String value = calibrationStatus.toString();
-        this.telemetry.addData("Calib. Status", value);
-        this.telemetry.update();
+    public void init_loop() {
+        telemetry.addData("Brave New World", "Groovy");
+        telemetry.addData("Version", "0.21");
+        telemetry.addData("Accelerometer", robot.getImu().isAccelerometerCalibrated());
+        telemetry.addData("Gyro", robot.getImu().isGyroCalibrated());
+        telemetry.addData("Magnetometer", robot.getImu().isMagnetometerCalibrated());
+        telemetry.addData("Calib. Status", robot.getImu().getCalibrationStatus().toString());
+        telemetry.update();
     }
 
     /*
      * Code to run ONCE when the driver hits PLAY
      */
     @Override
-    public final void start() {
-        this.robot.startIMU(new Position(
+    public void start() {
+        robot.startIMU(new Position(
                 DistanceUnit.METER,
                 0.0, 0.0, 0.0 // <--- starting position
-                , 0L
+                , 0
         ));
     }
 
     @Override
-    public final void loop() {
-        this.robot.hardwareLoop();
+    public void loop() {
+        robot.hardwareLoop();
 
-        this.robot.chassis(new double[]{(double) this.gamepad1.right_stick_y, (double) this.gamepad1.right_stick_x, (double) this.gamepad1.left_stick_x});
+        robot.chassis(gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
 
-        final float[] hsv = {(float) 0, (float) 0, (float) 0};
-        final int argb = this.robot.gregArgb();
-        Color.colorToHSV(argb, hsv);
+        float[] hsv = {0, 0, 0};
+        Color.colorToHSV(robot.gregArgb(), hsv);
 
-        this.robot.armPower(this.gamepad2.left_stick_y);
-        if (this.gamepad2.right_bumper) {
-            this.robot.openClaw();
-        } else if (0.1 < (double) this.gamepad2.right_trigger) {
-            this.robot.closeClaw();
+        robot.armPower((double) gamepad2.left_stick_y);
+        if (gamepad2.right_bumper) {
+            robot.openClaw();
+        } else if (gamepad2.right_trigger > 0.1) {
+            robot.closeClaw();
         }
-        if (this.gamepad2.back) {
-            this.robot.armStartup();
+        if (gamepad2.back) {
+            robot.armStartup();
         }
-        if (this.gamepad2.right_stick_button) {
-            if (RobotHardware.areFlywheelsRunning()) {
-                this.robot.stopFlywheels();
+        if (gamepad2.right_stick_button) {
+            if (robot.areFlywheelsRunning()) {
+                robot.stopFlywheels();
             } else {
-                this.robot.startFlywheels();
+                robot.startFlywheels();
             }
         }
-        if (this.gamepad2.dpad_down) {
-            if (FirePosition.LOW == this.firePos) {
-                this.firePos = FirePosition.MEDIUM;
+        if (gamepad2.dpad_down) {
+            if (firePos == FirePosition.LOW) {
+                firePos = FirePosition.MEDIUM;
             } else {
-                this.firePos = FirePosition.HIGH;
+                firePos = FirePosition.HIGH;
             }
         }
-        if (this.gamepad2.dpad_up) {
-            if (FirePosition.HIGH == this.firePos) {
-                this.firePos = FirePosition.MEDIUM;
+        if (gamepad2.dpad_up) {
+            if (firePos == FirePosition.HIGH) {
+                firePos = FirePosition.MEDIUM;
             } else {
-                this.firePos = FirePosition.LOW;
+                firePos = FirePosition.LOW;
             }
         }
-        if (this.gamepad2.left_stick_button) {
-            RobotHardware.fire(this.firePos);
+        if (gamepad2.left_stick_button) {
+            robot.fire(firePos);
         }
-        if (this.gamepad2.a) {
-            this.robot.startIntake();
+        if (gamepad2.a) {
+            robot.startIntake();
         }
-        if (this.gamepad2.b) {
-            this.robot.reverseIntake();
+        if (gamepad2.b) {
+            robot.reverseIntake();
         }
-        if (this.gamepad2.x) {
-            this.robot.stopIntake();
+        if (gamepad2.x) {
+            robot.stopIntake();
         }
 
-        this.telemetry.addData("fwd/bkwd", "%.2f", this.gamepad1.right_stick_y);
-        this.telemetry.addData("strafe", "%.2f", this.gamepad1.right_stick_x);
-        this.telemetry.addData("turn", "%.2f\n------------", this.gamepad1.left_stick_x);
-        final Orientation rot = this.robot.getRot();
-        this.telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", rot.thirdAngle, rot.secondAngle, rot.firstAngle);
-        final Position pos = this.robot.getPos();
-        this.telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)",
-                pos.x, pos.y, pos.z);
-        this.telemetry.addData("HSV", "(%.2f, %.2f, %.2f)", hsv[0], hsv[1], hsv[2]);
-        this.telemetry.addData("Fire position", "%s", this.firePos);
-        this.telemetry.update();
+        telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y);
+        telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x);
+        telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x);
+        telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.getRot().thirdAngle, robot.getRot().secondAngle, robot.getRot().firstAngle);
+        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.getPos().x, robot.getPos().y, robot.getPos().z);
+        telemetry.addData("HSV", "(%.2f, %.2f, %.2f)", hsv[0], hsv[1], hsv[2]);
+        telemetry.addData("Fire position", "%s", firePos);
+        telemetry.update();
     }
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     @Override
-    public final void stop() {
-        this.robot.hardwareStop();
-        this.telemetry.addData("Exit", "Goodest Good Job!");
-        this.telemetry.update();
+    public void stop() {
+        robot.hardwareStop();
+        telemetry.addData("Exit", "Goodest Good Job!");
+        telemetry.update();
     }
 }
