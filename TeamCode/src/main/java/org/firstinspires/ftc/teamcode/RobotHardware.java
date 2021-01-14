@@ -145,10 +145,10 @@ public class RobotHardware {
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
         //                                     F/B    L/R   TURN
-        motorMap.put(frontright, new Double[]{-1.0, -0.935, -1.0});
-        motorMap.put(backright, new Double[]{-1.0, 1.0, -1.0});
-        motorMap.put(frontleft, new Double[]{-1.0, 0.935, 1.0});
-        motorMap.put(backleft, new Double[]{-1.0, -1.0, 1.0});
+        motorMap.put(frontright, new Double[]{-1.0, 0.935, -1.0});
+        motorMap.put(backright, new Double[]{-1.0, -1.0, -1.0});
+        motorMap.put(frontleft, new Double[]{-1.0, -0.935, 1.0});
+        motorMap.put(backleft, new Double[]{-1.0, 1.0, 1.0});
 
         // Set all motors to zero power
         chassis(0, 0, 0);
