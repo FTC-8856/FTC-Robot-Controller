@@ -6,26 +6,27 @@ import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+@SuppressWarnings("unused")
 @TeleOp(name = "Insecticide", group = "Bug Fix the Bug")
-public class Insecticide extends OpMode {
+class Insecticide extends OpMode {
     @NonNull
-    final
+    private final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
-    public void init() {
+    public final void init() {
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
          */
-        robot.init(hardwareMap, "");
+        this.robot.init(this.hardwareMap, "");
     }
 
     @Override
-    public void loop() {
-        robot.hardwareLoop();
+    public final void loop() {
+        this.robot.hardwareLoop();
         /*
         if (gamepad1.a) {
             robot.set_backleft(1.0);
@@ -46,7 +47,7 @@ public class Insecticide extends OpMode {
      * Code to run ONCE after the driver hits STOP
      */
     @Override
-    public void stop() {
-        robot.hardwareStop();
+    public final void stop() {
+        this.robot.hardwareStop();
     }
 }

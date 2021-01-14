@@ -29,15 +29,18 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -49,65 +52,98 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * This is NOT an opmode.
  */
+@RequiresApi(api = Build.VERSION_CODES.N)
+@SuppressWarnings("unused")
 public class RobotHardware {
-    private static final Double CLOSE_CLAW = 0.6;
-    private static final Double OPEN_CLAW = 0.0;
-    private static final Double ARM_IN = 0.0;
-    private static final Double MID_ARM = 0.3;
-    private static final Double ARM_OUT = 0.95;
-    private static final Double INTAKE_POWER = 1.0;
-    private final ElapsedTime period = new ElapsedTime();
+    private static final double INCHES_PER_SECOND = 52.5;
+    private static final double MILLISECONDS_PER_SECONDS = 1000.0;
+
+    @SuppressWarnings("unused")
     @Nullable
-    private final OpenCvCamera webcam = null;
+    private final Optional<OpenCvCamera> webcam = Optional.empty();
     @NonNull
-    private final Map<DcMotor, Double[]> motorMap = new HashMap<>();
+    private final Map<DcMotor, double[]> motorMap = new HashMap<>(4);
     /* IMU public variables */
     private boolean isImuEnabled = false;
-    private BNO055IMU imu;
-    private BNO055IMU.Parameters imuParameters;
-    private Position pos;
-    private Orientation rot;
-    /* local OpMode members. */
+    private BNO055IMU imu = null;
+    private Position pos = null;
+    private Orientation rot = null;
+    private Optional<DcMotor> intake = Optional.empty();
+    private Optional<Servo> wobble = Optional.empty();
+    private Optional<Servo> wobbleFinger = Optional.empty();
     @Nullable
-    private HardwareMap hwMap = null;
-    @Nullable
-    private DcMotor intake = null;
-    @Nullable
-    private Servo wobble = null;
-    @Nullable
-    private Servo wobbleFinger = null;
-    @Nullable
-    private ColorSensor greg = null;
+    private ColorSensor greg;
+    private Optional<Servo> shooter = Optional.empty();
 
-    /* Constructor */
-    public RobotHardware() {
-        // Does nothing
+    @SuppressWarnings("unused")
+    @NonNull
+    public static OpenCvCamera startCamera(@NonNull final WebcamName cameraID) {
+        // Not done yet, this only gets the camera instance, but does not start the video streaming
+        return OpenCvCameraFactory.getInstance().createWebcam(cameraID);
+    }
+
+    private static void waitFor(final long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (final InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static long inchesToMs(final double inches) {
+        final double seconds = inches / RobotHardware.INCHES_PER_SECOND;
+        return (long) (RobotHardware.MILLISECONDS_PER_SECONDS * seconds);
+    }
+
+    final void fire(@NonNull final FirePosition firePos) {
+        if (this.shooter.isPresent()) {
+            final Servo servo = this.shooter.get();
+            final double position = firePos.toServoPosition();
+            servo.setPosition(position);
+        }
+    }
+
+    @SuppressWarnings("SameReturnValue")
+    boolean areFlywheelsRunning() {
+        return true;
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap, @NonNull String features) {
+    final void init(@NonNull final HardwareMap ahwMap, @NonNull final String features) {
         // Save reference to Hardware map
-        hwMap = ahwMap;
+        /* local OpMode members. */
 
         // Define and Initialize Motors
         /* Public OpMode members. */
-        DcMotor frontleft = hwMap.get(DcMotor.class, "frontleft");
-        DcMotor frontright = hwMap.get(DcMotor.class, "frontright");
-        DcMotor backleft = hwMap.get(DcMotor.class, "backleft");
-        DcMotor backright = hwMap.get(DcMotor.class, "backright");
-        intake = hwMap.get(DcMotor.class, "intake"); // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
-        wobble = hwMap.get(Servo.class, "wobble"); // Wobble goal actuator arm rotator
-        wobbleFinger = hwMap.get(Servo.class, "wobbleFinger"); // Wobble goal actuator arm "finger" grabber joint servo
-        greg = hwMap.get(ColorSensor.class, "greg"); // Greg is our premier color sensor.
+        final DcMotor frontleft = ahwMap.get(DcMotor.class, "frontleft");
+        final DcMotor frontright = ahwMap.get(DcMotor.class, "frontright");
+        final DcMotor backleft = ahwMap.get(DcMotor.class, "backleft");
+        final DcMotor backright = ahwMap.get(DcMotor.class, "backright");
+        final DcMotor nullableIntake = ahwMap.get(DcMotor.class, "intake");
+        this.intake = Optional.of(nullableIntake); // S c o o p s  the rings
+        // into the hopper to be shot at unsuspecting power shots and tower goals
+        final Servo nullableWobble = ahwMap.get(Servo.class, "wobble");
+        this.wobble = Optional.of(nullableWobble);
+        final Servo nullableWobbleFinger = ahwMap.get(Servo.class, "wobbleFinger");
+        this.wobbleFinger = Optional.of(nullableWobbleFinger); // Wobble goal
+        // actuator arm "finger" grabber joint servo
+        this.greg = ahwMap.get(ColorSensor.class, "greg"); // Greg is our premier
+        // color sensor.
         //
         // This space has been left reserved for the firing mechanism devices when they are finished.
         //
-        backleft.setDirection(DcMotor.Direction.REVERSE);
-        frontleft.setDirection(DcMotor.Direction.REVERSE);
+        final Servo nullableShooter = ahwMap.get(Servo.class, "shooter");
+        this.shooter = Optional.of(nullableShooter);
+
+        backleft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         // Set all motors to run without encoders.
@@ -116,190 +152,226 @@ public class RobotHardware {
         frontright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backleft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (this.intake.isPresent()) {
+            final DcMotor dcMotor = this.intake.get();
+            dcMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
 
         if (features.contains("imu")) {
-            isImuEnabled = true;
+            this.isImuEnabled = true;
 
-            imu = hwMap.get(BNO055IMU.class, "imu");
+            this.imu = ahwMap.get(BNO055IMU.class, "imu");
 
             // Create new IMU Parameters object.
-            imuParameters = new BNO055IMU.Parameters();
+            final BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
             imuParameters.mode = BNO055IMU.SensorMode.IMU;
             // Use degrees as angle unit.
             imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
             // Express acceleration as m/s^2.
             imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
             imuParameters.calibrationDataFile = "GregIMUCalibration.json";
-            //imuParameters.accelerationIntegrationAlgorithm = ; // We're gonna stick with the library's bad direct integration for now before we write our own, even worse one
+            //imuParameters.accelerationIntegrationAlgorithm = ; // We're gonna stick with the
+            // library's bad direct integration for now before we write our own, even worse one
 
             // Disable logging.
             imuParameters.loggingEnabled = false;
             // Initialize IMU.
-            imu.initialize(imuParameters);
+            this.imu.initialize(imuParameters);
         }
 
         // Do the OpenCV initialization if it is asked for
-        // We will have to have this commented out until we figure out how to get the webcam on the hardware map
-        //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
+        // We will have to have this commented out until we figure out how to get the webcam on the
+        // hardware map
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
         //                                     F/B    L/R   TURN
-        motorMap.put(frontright, new Double[]{-1.0, -0.935, -1.0});
-        motorMap.put(backright, new Double[]{-1.0, 1.0, -1.0});
-        motorMap.put(frontleft, new Double[]{-1.0, 0.935, 1.0});
-        motorMap.put(backleft, new Double[]{-1.0, -1.0, 1.0});
+        this.motorMap.put(frontright, new double[]{-1.0, -0.935, -1.0});
+        this.motorMap.put(backright, new double[]{-1.0, 1.0, -1.0});
+        this.motorMap.put(frontleft, new double[]{-1.0, 0.935, 1.0});
+        this.motorMap.put(backleft, new double[]{-1.0, -1.0, 1.0});
 
         // Set all motors to zero power
-        chassis(0, 0, 0);
-        armStartup();
-        closeClaw();
+        this.chassis(new double[]{0.0, 0.0, 0.0});
+        this.armStartup();
+        this.closeClaw();
     }
 
-    /* We'll come back to this function
-    public void hardwareStart(){
-        if(isImuEnabled) {
-            imu.startAccelerationIntegration();
-        }
-    }
-     */
-
-    public void hardwareLoop() {
-        if (isImuEnabled) {
-            rot = imu.getAngularOrientation();
-            pos = imu.getPosition();
+    final void hardwareLoop() {
+        if (this.isImuEnabled) {
+            this.rot = this.imu.getAngularOrientation();
+            this.pos = this.imu.getPosition();
         }
     }
 
-    public void hardwareStop() {
-        if (isImuEnabled) {
-            imu.stopAccelerationIntegration();
+    final void hardwareStop() {
+        if (this.isImuEnabled) {
+            this.imu.stopAccelerationIntegration();
         }
     }
 
-    public OpenCvCamera startCamera(WebcamName cameraID) { // Not done yet, this only gets the camera instance, but does not start the video streaming
-        return OpenCvCameraFactory.getInstance().createWebcam(cameraID);
-    }
-
-    public void startIMU(Position initPos) {
-        imu.startAccelerationIntegration(
+    final void startIMU(@NonNull final Position initPos) {
+        this.imu.startAccelerationIntegration(
                 initPos,
-                new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0, 0), // we don't need to worry about initial velocity. It's always going to be 0
+                new Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0,
+                        0L), // we don't need to worry about initial velocity. It's
+                // always going to be 0
                 10 // maximum possible poll interval ~~ 100Hz sample rate
         );
     }
 
-    public void chassis(double rightStickY, double rightStickX, double leftStickX) {
-        for (Map.Entry<DcMotor, Double[]> entry : motorMap.entrySet()) {
-            Double[] values = entry.getValue();
-            double power = values[0] * rightStickY + values[1] * rightStickX + values[2] * leftStickX;
-            entry.getKey().setPower(Math.max(-1, Math.min(power, 1)));
+    final void chassis(@NonNull final double[] joystick) {
+        for (final Map.Entry<DcMotor, double[]> entry : this.motorMap.entrySet()) {
+            final double[] values = entry.getValue();
+            final double power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] *
+                    joystick[2];
+            final DcMotor key = entry.getKey();
+            final double min = Math.min(power, 1.0);
+            final double max = Math.max(-1.0, min);
+            key.setPower(max);
         }
     }
 
-    public void performAction(@NonNull Action action) {
+    final void performAction(@NonNull final Action action) {
         switch (action) {
             case CLOSE_CLAW:
-                closeClaw();
+                this.closeClaw();
                 break;
             case OPEN_CLAW:
-                openClaw();
+                this.openClaw();
                 break;
             case RETRACT_ARM:
-                armPower(0.0);
+                this.armPower(0.0);
                 break;
             case EXTEND_ARM:
-                armPower(1.0);
+                this.armPower(1.0);
                 break;
             case START_INTAKE:
-                startIntake();
+                this.startIntake();
                 break;
             case STOP_INTAKE:
-                stopIntake();
+                this.stopIntake();
                 break;
             case REVERSE_INTAKE:
-                reverseIntake();
+                this.reverseIntake();
                 break;
             case FIRE_LOW:
-                fire(FirePosition.LOW);
+                this.fire(FirePosition.LOW);
                 break;
             case FIRE_MID:
-                fire(FirePosition.MEDIUM);
+                this.fire(FirePosition.MEDIUM);
                 break;
             case FIRE_HIGH:
-                fire(FirePosition.HIGH);
+                this.fire(FirePosition.HIGH);
                 break;
             default:
                 break;
         }
     }
 
-    public void closeClaw() {
-        wobbleFinger.setPosition(CLOSE_CLAW);
-    }
-
-    public void openClaw() {
-        wobbleFinger.setPosition(OPEN_CLAW);
-    }
-
-    public void armStartup() {
-        wobble.setPosition(ARM_IN);
-    }
-
-    public void armPower(Double d) {
-        wobble.setPosition(MID_ARM + .5 * ((d + 1) * (ARM_OUT - MID_ARM)));
-    }
-
-    public void startIntake() {
-        intake.setPower(INTAKE_POWER);
-    }
-
-    public void stopIntake() {
-        intake.setPower(0);
-    }
-
-    public void reverseIntake() {
-        intake.setPower(-1 * INTAKE_POWER);
-    }
-
-    public void fire(FirePosition firePos) {
-        if (firePos == FirePosition.HIGH) {
-            // To-do
-        }
-        if (firePos == FirePosition.MEDIUM) {
-            // To-do
-        }
-        if (firePos == FirePosition.LOW) {
-            // To-do
+    final void closeClaw() {
+        if (this.wobbleFinger.isPresent()) {
+            final Servo servo = this.wobbleFinger.get();
+            servo.setPosition(0.6);
         }
     }
 
-    public void startFlywheels() {
-
+    final void openClaw() {
+        if (this.wobbleFinger.isPresent()) {
+            final Servo servo = this.wobbleFinger.get();
+            servo.setPosition(0.0);
+        }
     }
 
-    public void stopFlywheels() {
-
+    final void armStartup() {
+        if (this.wobble.isPresent()) {
+            final Servo servo = this.wobble.get();
+            servo.setPosition(0.0);
+        }
     }
 
-    public boolean areFlywheelsRunning() {
-        return true;
+    final void armPower(final double input) {
+        if (this.wobble.isPresent()) {
+            final Servo servo = this.wobble.get();
+            final double position = RobotHardware.normalize(input,
+                    1.0, -1.0, 0.95, 0.3);
+            servo.setPosition(position);
+        }
     }
 
-    public int gregArgb() {
-        return greg.argb();
+    @SuppressWarnings("SameParameterValue")
+    private static double normalize(final double input,
+                                    final double inputMax, final double inputMin,
+                                    final double outputMax, final double outputMin) {
+        final double inputDiff = inputMax - inputMin;
+        final double outputDiff = outputMax - outputMin;
+        final double inputOffset = input - inputMin;
+        return outputMin + (inputOffset / inputDiff) * outputDiff;
     }
 
-    public BNO055IMU getImu() {
+    final void startIntake() {
+        if (this.intake.isPresent()) {
+            final DcMotor dcMotor = this.intake.get();
+            dcMotor.setPower(1.0);
+        }
+    }
+
+    final void stopIntake() {
+        if (this.intake.isPresent()) {
+            final DcMotor dcMotor = this.intake.get();
+            dcMotor.setPower(0.0);
+        }
+    }
+
+    final void reverseIntake() {
+        if (this.intake.isPresent()) {
+            final DcMotor dcMotor = this.intake.get();
+            dcMotor.setPower(-1.0 * 1.0);
+        }
+    }
+
+    void startFlywheels() {
+        // To-do
+    }
+
+    void stopFlywheels() {
+        // To-do
+    }
+
+    final int gregArgb() {
+        final ColorSensor colorSensor = Objects.requireNonNull(this.greg);
+        return colorSensor.argb();
+    }
+
+    @NonNull
+    final BNO055IMU getImu() {
         return this.imu;
     }
 
-    public Position getPos() {
+    @NonNull
+    final Position getPos() {
         return this.pos;
     }
 
-    public Orientation getRot() {
+    @NonNull
+    final Orientation getRot() {
         return this.rot;
+    }
+
+    private void waitForAdjusted(final long ms, final double[] adjusted) {
+        RobotHardware.waitFor(ms);
+        this.chassis(adjusted);
+    }
+
+    final void driveFor(final double inches, @NonNull final double[] joystick) {
+        this.chassis(joystick);
+        final long ms = RobotHardware.inchesToMs(inches);
+        RobotHardware.waitFor(ms);
+    }
+
+    final void driveForAdjusted(final double inches, @NonNull final double[] joystick, @NonNull final double[] adjusted) {
+        this.chassis(joystick);
+        final long ms = RobotHardware.inchesToMs(inches);
+        this.waitForAdjusted(ms, adjusted);
     }
 }
 

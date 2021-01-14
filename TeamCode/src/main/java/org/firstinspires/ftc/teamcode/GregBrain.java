@@ -12,86 +12,83 @@ import org.tensorflow.lite.Interpreter;
 
 import java.io.File;
 
-@Autonomous(name = "Greg Brain") // Yeeeees we are getting the brain
-public class GregBrain extends OpMode {
-    Interpreter brain;
+@SuppressWarnings("unused")
+@Autonomous(name = "Greg Brain")
+        // Yeeeees we are getting the brain
+class GregBrain extends OpMode {
     @NonNull
+    private final
     ElapsedTime gametime = new ElapsedTime();
     @NonNull
+    private final
     RobotHardware robot = new RobotHardware();
-
-    @Override
-    public void init() {
-        File tflite_file = new File("/FIRST/8856tensorflow/greg.tflite");
-        brain = new Interpreter(tflite_file);
-        robot.init(hardwareMap, "imu");
-    }
-
-    @Override
-    public void start() {
-        robot.startIMU(new Position(
-                DistanceUnit.METER,
-                0.0, 0.0, 0.0 // <--- starting position
-                , 0
-        ));
-        gametime.reset();
-    }
-
-    @Override
-    public void loop() {
-        robot.hardwareLoop();
-        float[] input_layer = new float[]{
-                (float) gametime.seconds() / 30 // 30 second autonomous period
-                , (float) robot.getPos().x
-                , (float) robot.getPos().y
-                , robot.getRot().thirdAngle // Heading
-        };
-        float[] output_layer = new float[4]; // Basic Joystick controls for now
-        brain.run(input_layer, output_layer); // activate the  t h i n k i n g
-        robot.chassis(output_layer[0], output_layer[1], output_layer[2]);
-        robot.performAction(decodeFloat(output_layer[4]));
-    }
-
-    @Override
-    public void stop() {
-        brain.close();
-        robot.hardwareStop();
-    }
+    private Interpreter brain;
 
     @NonNull
-    private Action decodeFloat(float f) {
-        double f_11 = f / 11.0;
-        if (f_11 >= 0 && f_11 < 1) {
-            return Action.OPEN_CLAW;
+    private static Action decodeFloat(final float f) {
+        final int f11 = (int) ((double) f / 11.0);
+        Action action = Action.NONE;
+        if (1 > f11) {
+            action = Action.OPEN_CLAW;
+        } else if (2 > f11) {
+            action = Action.CLOSE_CLAW;
+        } else if (3 > f11) {
+            action = Action.RETRACT_ARM;
+        } else if (4 > f11) {
+            action = Action.EXTEND_ARM;
+        } else if (5 > f11) {
+            action = Action.START_INTAKE;
+        } else if (6 > f11) {
+            action = Action.STOP_INTAKE;
+        } else if (7 > f11) {
+            action = Action.REVERSE_INTAKE;
+        } else if (8 > f11) {
+            action = Action.FIRE_LOW;
+        } else if (9 > f11) {
+            action = Action.FIRE_MID;
+        } else if (10 > f11) {
+            action = Action.FIRE_HIGH;
         }
-        if (f_11 >= 1 && f_11 < 2) {
-            return Action.CLOSE_CLAW;
-        }
-        if (f_11 >= 2 && f_11 < 3) {
-            return Action.RETRACT_ARM;
-        }
-        if (f_11 >= 3 && f_11 < 4) {
-            return Action.EXTEND_ARM;
-        }
-        if (f_11 >= 4 && f_11 < 5) {
-            return Action.START_INTAKE;
-        }
-        if (f_11 >= 5 && f_11 < 6) {
-            return Action.STOP_INTAKE;
-        }
-        if (f_11 >= 6 && f_11 < 7) {
-            return Action.REVERSE_INTAKE;
-        }
-        if (f_11 >= 7 && f_11 < 8) {
-            return Action.FIRE_LOW;
-        }
-        if (f_11 >= 8 && f_11 < 9) {
-            return Action.FIRE_MID;
-        }
-        if (f_11 >= 9 && f_11 < 10) {
-            return Action.FIRE_HIGH;
-        }
-        return Action.NONE;
+        return action;
+    }
+
+    @Override
+    public final void init() {
+        final File tfliteFile = new File("/FIRST/8856tensorflow/greg.tflite");
+        this.brain = new Interpreter(tfliteFile);
+        this.robot.init(this.hardwareMap, "imu");
+    }
+
+    @Override
+    public final void start() {
+        this.robot.startIMU(new Position(
+                DistanceUnit.METER,
+                0.0, 0.0, 0.0 // <--- starting position
+                , 0L
+        ));
+        this.gametime.reset();
+    }
+
+    @Override
+    public final void loop() {
+        this.robot.hardwareLoop();
+        final float[] inputLayer = {
+                (float) this.gametime.seconds() / 30.0F // 30 second autonomous period
+                , (float) this.robot.getPos().x
+                , (float) this.robot.getPos().y
+                , this.robot.getRot().thirdAngle // Heading
+        };
+        final float[] outputLayer = new float[4]; // Basic Joystick controls for now
+        this.brain.run(inputLayer, outputLayer); // activate the  t h i n k i n g
+        this.robot.chassis(new double[]{(double) outputLayer[0], (double) outputLayer[1], (double) outputLayer[2]});
+        final Action action = GregBrain.decodeFloat(outputLayer[4]);
+        this.robot.performAction(action);
+    }
+
+    @Override
+    public final void stop() {
+        this.brain.close();
+        this.robot.hardwareStop();
     }
 
 
