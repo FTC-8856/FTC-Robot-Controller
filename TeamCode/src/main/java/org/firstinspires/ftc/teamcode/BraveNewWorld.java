@@ -10,15 +10,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
+@SuppressWarnings("unused")
 @TeleOp(name = "Brave New World", group = "Pushbot")
 
 public class BraveNewWorld extends OpMode {
 
     @NonNull
-    final
+    private final
     RobotHardware robot = new RobotHardware(); // use the class created to define a Pushbot's hardware
-    @NonNull
-    FirePosition firePos = FirePosition.LOW;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -61,7 +60,7 @@ public class BraveNewWorld extends OpMode {
     public void loop() {
         robot.hardwareLoop();
 
-        robot.chassis(gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
+        robot.chassis(new double[]{gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x});
 
         float[] hsv = {0, 0, 0};
         Color.colorToHSV(robot.gregArgb(), hsv);
@@ -83,21 +82,13 @@ public class BraveNewWorld extends OpMode {
             }
         }
         if (gamepad2.dpad_down) {
-            if (firePos == FirePosition.LOW) {
-                firePos = FirePosition.MEDIUM;
-            } else {
-                firePos = FirePosition.HIGH;
-            }
+            robot.decrementFirePosition();
         }
         if (gamepad2.dpad_up) {
-            if (firePos == FirePosition.HIGH) {
-                firePos = FirePosition.MEDIUM;
-            } else {
-                firePos = FirePosition.LOW;
-            }
+            robot.incrementFirePosition();
         }
         if (gamepad2.left_stick_button) {
-            robot.fire(firePos);
+            robot.fire();
         }
         if (gamepad2.a) {
             robot.startIntake();
@@ -115,7 +106,7 @@ public class BraveNewWorld extends OpMode {
         telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.getRot().thirdAngle, robot.getRot().secondAngle, robot.getRot().firstAngle);
         telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.getPos().x, robot.getPos().y, robot.getPos().z);
         telemetry.addData("HSV", "(%.2f, %.2f, %.2f)", hsv[0], hsv[1], hsv[2]);
-        telemetry.addData("Fire position", "%s", firePos);
+        telemetry.addData("Fire position", "%s", robot.getFirePos());
         telemetry.update();
     }
 

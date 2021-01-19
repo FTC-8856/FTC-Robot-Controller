@@ -12,13 +12,16 @@ import org.tensorflow.lite.Interpreter;
 
 import java.io.File;
 
+@SuppressWarnings("unused")
 @Autonomous(name = "Greg Brain") // Yeeeees we are getting the brain
 public class GregBrain extends OpMode {
-    Interpreter brain;
     @NonNull
+    final
     ElapsedTime gametime = new ElapsedTime();
     @NonNull
+    final
     RobotHardware robot = new RobotHardware();
+    Interpreter brain;
 
     @Override
     public void init() {
@@ -48,8 +51,8 @@ public class GregBrain extends OpMode {
         };
         float[] output_layer = new float[4]; // Basic Joystick controls for now
         brain.run(input_layer, output_layer); // activate the  t h i n k i n g
-        robot.chassis(output_layer[0], output_layer[1], output_layer[2]);
-        robot.performAction(decodeFloat(output_layer[4]));
+        robot.chassis(new double[]{output_layer[0], output_layer[1], output_layer[2]});
+        robot.performAction(decodeFloat(output_layer[3]));
     }
 
     @Override

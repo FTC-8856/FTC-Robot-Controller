@@ -39,6 +39,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -60,20 +61,19 @@ public class RobotHardware {
     private static final Double MID_ARM = 0.3;
     private static final Double ARM_OUT = 0.95;
     private static final Double INTAKE_POWER = 1.0;
+    private static final Double INCHES_PER_SECOND = 52.5;
+    @SuppressWarnings("unused")
     private final ElapsedTime period = new ElapsedTime();
-    @Nullable
-    private final OpenCvCamera webcam = null;
     @NonNull
     private final Map<DcMotor, Double[]> motorMap = new HashMap<>();
+    @SuppressWarnings("unused")
+    @Nullable
+    private WebcamName webcam = null;
     /* IMU public variables */
     private boolean isImuEnabled = false;
     private BNO055IMU imu;
-    private BNO055IMU.Parameters imuParameters;
     private Position pos;
     private Orientation rot;
-    /* local OpMode members. */
-    @Nullable
-    private HardwareMap hwMap = null;
     @Nullable
     private DcMotor intake = null;
     @Nullable
@@ -82,27 +82,30 @@ public class RobotHardware {
     private Servo wobbleFinger = null;
     @Nullable
     private ColorSensor greg = null;
+    @NonNull
+    private FirePosition firePosition = FirePosition.MEDIUM;
 
     /* Constructor */
+    @SuppressWarnings("unused")
     public RobotHardware() {
         // Does nothing
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap, @NonNull String features) {
+    public void init(@NonNull HardwareMap ahwMap, @NonNull String features) {
         // Save reference to Hardware map
-        hwMap = ahwMap;
+        /* local OpMode members. */
 
         // Define and Initialize Motors
         /* Public OpMode members. */
-        DcMotor frontleft = hwMap.get(DcMotor.class, "frontleft");
-        DcMotor frontright = hwMap.get(DcMotor.class, "frontright");
-        DcMotor backleft = hwMap.get(DcMotor.class, "backleft");
-        DcMotor backright = hwMap.get(DcMotor.class, "backright");
-        intake = hwMap.get(DcMotor.class, "intake"); // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
-        wobble = hwMap.get(Servo.class, "wobble"); // Wobble goal actuator arm rotator
-        wobbleFinger = hwMap.get(Servo.class, "wobbleFinger"); // Wobble goal actuator arm "finger" grabber joint servo
-        greg = hwMap.get(ColorSensor.class, "greg"); // Greg is our premier color sensor.
+        DcMotor frontleft = ahwMap.get(DcMotor.class, "frontleft");
+        DcMotor frontright = ahwMap.get(DcMotor.class, "frontright");
+        DcMotor backleft = ahwMap.get(DcMotor.class, "backleft");
+        DcMotor backright = ahwMap.get(DcMotor.class, "backright");
+        intake = ahwMap.get(DcMotor.class, "intake"); // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
+        wobble = ahwMap.get(Servo.class, "wobble"); // Wobble goal actuator arm rotator
+        wobbleFinger = ahwMap.get(Servo.class, "wobbleFinger"); // Wobble goal actuator arm "finger" grabber joint servo
+        greg = ahwMap.get(ColorSensor.class, "greg"); // Greg is our premier color sensor.
         //
         // This space has been left reserved for the firing mechanism devices when they are finished.
         //
@@ -116,15 +119,17 @@ public class RobotHardware {
         frontright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backleft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (intake != null) {
+            intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
 
         if (features.contains("imu")) {
             isImuEnabled = true;
 
-            imu = hwMap.get(BNO055IMU.class, "imu");
+            imu = ahwMap.get(BNO055IMU.class, "imu");
 
             // Create new IMU Parameters object.
-            imuParameters = new BNO055IMU.Parameters();
+            BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
             imuParameters.mode = BNO055IMU.SensorMode.IMU;
             // Use degrees as angle unit.
             imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -141,7 +146,7 @@ public class RobotHardware {
 
         // Do the OpenCV initialization if it is asked for
         // We will have to have this commented out until we figure out how to get the webcam on the hardware map
-        //webcam = startCamera(hwMap.get(WebcamName.class, "logitech"));
+        webcam = ahwMap.get(WebcamName.class, "gregcam");
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
         //                                     F/B    L/R   TURN
@@ -151,7 +156,7 @@ public class RobotHardware {
         motorMap.put(backleft, new Double[]{-1.0, 1.0, 1.0});
 
         // Set all motors to zero power
-        chassis(0, 0, 0);
+        chassis(new double[]{0, 0, 0});
         armStartup();
         closeClaw();
     }
@@ -177,6 +182,7 @@ public class RobotHardware {
         }
     }
 
+    @SuppressWarnings("unused")
     public OpenCvCamera startCamera(WebcamName cameraID) { // Not done yet, this only gets the camera instance, but does not start the video streaming
         return OpenCvCameraFactory.getInstance().createWebcam(cameraID);
     }
@@ -189,10 +195,10 @@ public class RobotHardware {
         );
     }
 
-    public void chassis(double rightStickY, double rightStickX, double leftStickX) {
+    public void chassis(double[] joystick) {
         for (Map.Entry<DcMotor, Double[]> entry : motorMap.entrySet()) {
             Double[] values = entry.getValue();
-            double power = values[0] * rightStickY + values[1] * rightStickX + values[2] * leftStickX;
+            double power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2];
             entry.getKey().setPower(Math.max(-1, Math.min(power, 1)));
         }
     }
@@ -221,13 +227,16 @@ public class RobotHardware {
                 reverseIntake();
                 break;
             case FIRE_LOW:
-                fire(FirePosition.LOW);
+                firePosition = FirePosition.LOW;
+                fire();
                 break;
             case FIRE_MID:
-                fire(FirePosition.MEDIUM);
+                firePosition = FirePosition.MEDIUM;
+                fire();
                 break;
             case FIRE_HIGH:
-                fire(FirePosition.HIGH);
+                firePosition = FirePosition.HIGH;
+                fire();
                 break;
             default:
                 break;
@@ -235,42 +244,73 @@ public class RobotHardware {
     }
 
     public void closeClaw() {
-        wobbleFinger.setPosition(CLOSE_CLAW);
+        if (wobbleFinger != null) {
+            wobbleFinger.setPosition(CLOSE_CLAW);
+        }
     }
 
     public void openClaw() {
-        wobbleFinger.setPosition(OPEN_CLAW);
+        if (wobbleFinger != null) {
+            wobbleFinger.setPosition(OPEN_CLAW);
+        }
     }
 
     public void armStartup() {
-        wobble.setPosition(ARM_IN);
+        if (wobble != null) {
+            wobble.setPosition(ARM_IN);
+        }
     }
 
     public void armPower(Double d) {
-        wobble.setPosition(MID_ARM + .5 * ((d + 1) * (ARM_OUT - MID_ARM)));
+        if (wobble != null) {
+            double position = MID_ARM + .5 * ((d + 1) * (ARM_OUT - MID_ARM));
+            wobble.setPosition(position);
+        }
     }
 
     public void startIntake() {
-        intake.setPower(INTAKE_POWER);
+        if (intake != null) {
+            intake.setPower(INTAKE_POWER);
+        }
     }
 
     public void stopIntake() {
-        intake.setPower(0);
+        if (intake != null) {
+            intake.setPower(0);
+        }
     }
 
     public void reverseIntake() {
-        intake.setPower(-1 * INTAKE_POWER);
+        if (intake != null) {
+            intake.setPower(-1 * INTAKE_POWER);
+        }
     }
 
-    public void fire(FirePosition firePos) {
-        if (firePos == FirePosition.HIGH) {
+    public void fire() {
+        if (firePosition == FirePosition.HIGH) {
             // To-do
         }
-        if (firePos == FirePosition.MEDIUM) {
+        if (firePosition == FirePosition.MEDIUM) {
             // To-do
         }
-        if (firePos == FirePosition.LOW) {
+        if (firePosition == FirePosition.LOW) {
             // To-do
+        }
+    }
+
+    public void decrementFirePosition() {
+        if (firePosition == FirePosition.HIGH) {
+            firePosition = FirePosition.MEDIUM;
+        } else {
+            firePosition = FirePosition.LOW;
+        }
+    }
+
+    public void incrementFirePosition() {
+        if (firePosition == FirePosition.LOW) {
+            firePosition = FirePosition.MEDIUM;
+        } else {
+            firePosition = FirePosition.HIGH;
         }
     }
 
@@ -287,7 +327,11 @@ public class RobotHardware {
     }
 
     public int gregArgb() {
-        return greg.argb();
+        if (greg != null) {
+            return greg.argb();
+        } else {
+            return 0;
+        }
     }
 
     public BNO055IMU getImu() {
@@ -300,6 +344,29 @@ public class RobotHardware {
 
     public Orientation getRot() {
         return this.rot;
+    }
+
+    @NonNull
+    public FirePosition getFirePos() {
+        return this.firePosition;
+    }
+
+    public void waitFor(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (Exception ignored) {
+        }
+        chassis(new double[]{0, 0, 0});
+    }
+
+
+    public void driveFor(Double inches) {
+        chassis(new double[]{-1.0, 0, 0});
+        waitFor((long) (1000 * inches / INCHES_PER_SECOND));
+    }
+
+    public WebcamName getWebcam() {
+        return this.webcam;
     }
 }
 

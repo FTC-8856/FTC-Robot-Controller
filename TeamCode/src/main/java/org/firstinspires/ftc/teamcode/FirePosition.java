@@ -1,11 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
+@SuppressWarnings("unused")
 public enum FirePosition {
     HIGH,
     MEDIUM,
     LOW,
     ;
 
+    @NonNull
     @Override
     public String toString() {
         if (this == FirePosition.HIGH) {

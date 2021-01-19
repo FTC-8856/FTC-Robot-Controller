@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+@SuppressWarnings("unused")
 @TeleOp(name = "Insecticide", group = "Bug Fix the Bug")
 public class Insecticide extends OpMode {
     @NonNull
