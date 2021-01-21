@@ -4,12 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -30,28 +28,41 @@ public class WobbleGoal extends LinearOpMode {
         initVuforia();
         initTfod();
         waitForStart();
-        double max = 0.0;
-        Recognition maxRecognition = null;
-        for (Recognition recognition : get_recognitions()) {
-            if (recognition.getConfidence() > max) {
-                maxRecognition = recognition;
-            }
-        }
-        if (maxRecognition.getLabel().equals("zero")) {
-            zero();
-        } else if (maxRecognition.getLabel().equals("three")) {
-            three();
-        } else {
-            four();
-        }
+        goTo();
     }
 
 
-    private List<Recognition> get_recognitions() {
+    private void goTo() {
         if (tfod != null) {
-            return tfod.getRecognitions();
+            List<Recognition> recognitions = tfod.getRecognitions();
+            if (recognitions.isEmpty()) {
+                tfod.shutdown();
+                zero();
+            } else {
+                double oneConfidence = 0.0;
+                double fourConfidence = 0.0;
+                for (Recognition recognition : recognitions) {
+                    if (recognition.getLabel().equals(LABEL_SECOND_ELEMENT)) {
+                        oneConfidence = recognition.getConfidence();
+                    } else if (recognition.getLabel().equals(LABEL_FIRST_ELEMENT)) {
+                        fourConfidence = recognition.getConfidence();
+                    }
+                }
+                if (fourConfidence > oneConfidence) {
+                    telemetry.addData("Four, Confidence: %2f", fourConfidence);
+                    telemetry.update();
+                    tfod.shutdown();
+                    four();
+                } else {
+                    telemetry.addData("One, Confidence: %2f", oneConfidence);
+                    telemetry.update();
+                    tfod.shutdown();
+                    one();
+                }
+            }
+        } else {
+            telemetry.addData("no TensorFlow object detector found", null);
         }
-        return new ArrayList<>();
     }
 
 
@@ -63,7 +74,7 @@ public class WobbleGoal extends LinearOpMode {
         robot.armPower(1.0);
     }
 
-    private void three() {
+    private void one() {
         robot.closeClaw();
         robot.driveFor(115.0);
         robot.armPower(-1.0);
