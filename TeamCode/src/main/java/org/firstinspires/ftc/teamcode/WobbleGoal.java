@@ -18,7 +18,7 @@ public class WobbleGoal extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
     private static final String LABEL_FIRST_ELEMENT = "Quad";
     private static final String LABEL_SECOND_ELEMENT = "Single";
-    private static final String VUFORIA_KEY = "";
+    private static final String VUFORIA_KEY = "LyBonjnM^D@FB$fe4Y^vf^uRSjRLsWf8RVcHy%@BASDffQSLr8Tq!qHH&au2%S^vHGt%ZVsQyDv3m!ydfA$*Ye*";
     RobotHardware robot;
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
