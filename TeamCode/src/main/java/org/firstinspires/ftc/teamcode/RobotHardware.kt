@@ -137,19 +137,19 @@ class RobotHardware  /* Constructor */ {
      */
     fun hardwareLoop() {
         if (isImuEnabled) {
-            rot = imu!!.angularOrientation
-            pos = imu!!.position
+            rot = imu?.angularOrientation
+            pos = imu?.position
         }
     }
 
     fun hardwareStop() {
         if (isImuEnabled) {
-            imu!!.stopAccelerationIntegration()
+            imu?.stopAccelerationIntegration()
         }
     }
 
     fun startIMU(initPos: Position?) {
-        imu!!.startAccelerationIntegration(
+        imu?.startAccelerationIntegration(
                 initPos,
                 Velocity(DistanceUnit.METER, 0.0, 0.0, 0.0, 0),  // we don't need to worry about initial velocity. It's always going to be 0
                 10 // maximum possible poll interval ~~ 100Hz sample rate
@@ -184,7 +184,9 @@ class RobotHardware  /* Constructor */ {
                 firePos = FirePosition.HIGH
                 fire()
             }
-            Action.NONE -> {}
+            Action.NONE -> {
+                // No action
+            }
         }
     }
 
@@ -195,40 +197,28 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun openClaw() {
-        if (wobbleFinger != null) {
-            wobbleFinger!!.position = OPEN_CLAW
-        }
+            wobbleFinger?.position = OPEN_CLAW
     }
 
     fun armStartup() {
-        if (wobble != null) {
-            wobble!!.position = ARM_IN
-        }
+       wobble?.position = ARM_IN
     }
 
     fun armPower(d: Double) {
-        if (wobble != null) {
-            val position = MID_ARM + .5 * ((d + 1) * (ARM_OUT - MID_ARM))
-            wobble!!.position = position
-        }
+        val position = ARM_MID + .5 * ((d + 1) * (ARM_OUT - ARM_MID))
+        wobble?.position = position
     }
 
     fun startIntake() {
-        if (intake != null) {
-            intake!!.power = INTAKE_POWER
-        }
+        intake?.power = INTAKE_POWER
     }
 
     fun stopIntake() {
-        if (intake != null) {
-            intake!!.power = 0.0
-        }
+        intake?.power = 0.0
     }
 
     fun reverseIntake() {
-        if (intake != null) {
-            intake!!.power = -1 * INTAKE_POWER
-        }
+        intake?.power = -1 * INTAKE_POWER
     }
 
     fun fire() {
@@ -259,38 +249,47 @@ class RobotHardware  /* Constructor */ {
         }
     }
 
-    fun startFlywheels() {}
-    fun stopFlywheels() {}
+    fun startFlywheels() {
+        // Does nothing yet
+    }
+
+    fun stopFlywheels() {
+        // Does nothing yet
+    }
+
     fun areFlywheelsRunning(): Boolean {
         return true
     }
 
-    fun gregArgb(): Int {
-        return if (greg != null) {
-            greg!!.argb()
-        } else {
-            0
-        }
+    fun gregArgb(): Int? {
+        return greg?.argb()
     }
 
-    private fun waitFor(ms: Long) {
+    fun waitFor(ms: Long): Boolean {
         try {
             Thread.sleep(ms)
         } catch (ignored: Exception) {
+            return false
         }
-        chassis(doubleArrayOf(0.0, 0.0, 0.0))
+        return true
     }
 
-    fun driveFor(inches: Double) {
-        chassis(doubleArrayOf(-1.0, 0.0, 0.0))
-        waitFor((1000 * inches / INCHES_PER_SECOND).toLong())
+    fun driveFor(inches: Double): Boolean {
+        return driveForWith(inches, doubleArrayOf(-1.0, -0.25, 0.0))
+    }
+
+    private fun driveForWith(inches: Double, array: DoubleArray): Boolean {
+        chassis(array)
+        val value = waitFor((1000 * inches / INCHES_PER_SECOND).toLong())
+        chassis(doubleArrayOf(0.0, 0.0, 0.0))
+        return value
     }
 
     companion object {
         private const val CLOSE_CLAW = 0.6
         private const val OPEN_CLAW = 0.0
         private const val ARM_IN = 0.0
-        private const val MID_ARM = 0.3
+        private const val ARM_MID = 0.3
         private const val ARM_OUT = 0.95
         private const val INTAKE_POWER = -1.0
         private const val INCHES_PER_SECOND = 52.5

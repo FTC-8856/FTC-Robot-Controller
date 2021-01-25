@@ -13,10 +13,12 @@ class WobbleGoal : LinearOpMode() {
     private var tfod: TFObjectDetector? = null
     override fun runOpMode() {
         robot = RobotHardware()
-        robot!!.init(hardwareMap, "")
+        robot?.init(hardwareMap, "")
         initVuforia()
         initTfod()
         waitForStart()
+        robot?.closeClaw()
+        robot?.armStartup()
         goTo()
     }
 
@@ -24,7 +26,7 @@ class WobbleGoal : LinearOpMode() {
         if (tfod != null) {
             val recognitions = tfod!!.recognitions
             if (recognitions.isEmpty()) {
-                tfod!!.shutdown()
+                tfod?.shutdown()
                 zero()
             } else {
                 var oneConfidence = 0.0
@@ -50,33 +52,48 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun zero() {
-        telemetry.addData("Rings:", "Zero")
+        telemetry.addData("Rings:", "Zero (no recognitions found)")
         telemetry.update()
-        robot!!.closeClaw()
-        robot!!.driveFor(88.0)
-        robot!!.armPower(-1.0)
-        robot!!.openClaw()
-        robot!!.armPower(1.0)
+        robot?.driveFor(116.0)
+        drop()
     }
 
     private fun one() {
         telemetry.addData("Rings:", "One")
         telemetry.update()
-        robot!!.closeClaw()
-        robot!!.driveFor(115.0)
-        robot!!.armPower(-1.0)
-        robot!!.openClaw()
-        robot!!.armPower(1.0)
+        robot?.startIntake()
+        robot?.driveFor(120.0)
+        robot?.stopIntake()
+        robot?.chassis(doubleArrayOf(0.0, 0.0, 1.0))
+        robot?.driveFor(12.0)
+        drop()
     }
 
     private fun four() {
         telemetry.addData("Rings:", "Four")
         telemetry.update()
-        robot!!.closeClaw()
-        robot!!.driveFor(120.0)
-        robot!!.armPower(1.0)
-        robot!!.openClaw()
-        robot!!.armPower(-1.0)
+        robot?.startIntake()
+        robot?.driveFor(150.0)
+        robot?.stopIntake()
+        drop()
+    }
+
+    private fun drop() {
+        telemetry.addData("Dropping...", null)
+        telemetry.update()
+        transition(-1.0, 1.0)
+        robot?.waitFor(800)
+        robot?.openClaw()
+        robot?.waitFor(800)
+        transition(1.0, -1.0)
+    }
+
+    private fun transition(d1: Double, d2: Double) {
+        robot?.armPower(d1)
+        robot?.waitFor(10)
+        robot?.armPower((d1+d2)/2)
+        robot?.waitFor(10)
+        robot?.armPower(d2)
     }
 
     /**
@@ -96,9 +113,11 @@ class WobbleGoal : LinearOpMode() {
         val tfodMonitorViewId = hardwareMap.appContext.resources.getIdentifier(
                 "tfodMonitorViewId", "id", hardwareMap.appContext.packageName)
         val tfodParameters = TFObjectDetector.Parameters(tfodMonitorViewId)
-        tfodParameters.minResultConfidence = 0.8f
+        tfodParameters.minResultConfidence = 0.6f
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia)
-        tfod?.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
+        tfod!!.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
+        tfod!!.setZoom(1.2, 16.0 / 9.0)
+        tfod!!.activate()
     }
 
     companion object {

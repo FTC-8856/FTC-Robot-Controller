@@ -33,11 +33,9 @@ class GregBrain : OpMode() {
         val input_layer = robot.pos?.x?.toFloat()?.let {
             robot.rot?.let { it1 ->
                 floatArrayOf(
-                    gametime.seconds().toFloat() / 30 // 30 second autonomous period
-                    , it
-                    , robot.pos!!.y.toFloat()
-                    , it1.thirdAngle // Heading
-            )
+                        gametime.seconds().toFloat() / 30 // 30 second autonomous period
+                        , it, robot.pos!!.y.toFloat(), it1.thirdAngle // Heading
+                )
             }
         }
         val output_layer = FloatArray(4) // Basic Joystick controls for now

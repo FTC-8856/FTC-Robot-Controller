@@ -48,7 +48,7 @@ class BraveNewWorld : OpMode() {
         robot.hardwareLoop()
         robot.chassis(doubleArrayOf(gamepad1.right_stick_y.toDouble(), gamepad1.right_stick_x.toDouble(), gamepad1.left_stick_x.toDouble()))
         val hsv = floatArrayOf(0f, 0f, 0f)
-        Color.colorToHSV(robot.gregArgb(), hsv)
+        Color.colorToHSV(robot.gregArgb()!!, hsv)
         robot.armPower(gamepad2.left_stick_y.toDouble())
         if (gamepad2.right_bumper) {
             robot.openClaw()

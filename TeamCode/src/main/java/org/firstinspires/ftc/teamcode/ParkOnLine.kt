@@ -13,5 +13,4 @@ class ParkOnLine : LinearOpMode() {
         robot!!.driveFor(90.0)
     }
 
-    companion object
 }
