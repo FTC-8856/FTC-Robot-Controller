@@ -8,17 +8,19 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector
 
 @Autonomous(name = "Wobble Goal")
 class WobbleGoal : LinearOpMode() {
-    private var robot: RobotHardware? = null
+    private var robot: RobotHardware = RobotHardware()
     private var vuforia: VuforiaLocalizer? = null
     private var tfod: TFObjectDetector? = null
     override fun runOpMode() {
-        robot = RobotHardware()
-        robot?.init(hardwareMap, "")
+        robot.init(hardwareMap, "")
         initVuforia()
         initTfod()
         waitForStart()
-        robot?.closeClaw()
-        robot?.armStartup()
+        robot.closeClaw()
+        robot.armStartup()
+        robot.driveFor(10.0)
+        robot.brake()
+        robot.waitFor(1000)
         goTo()
     }
 
@@ -54,46 +56,47 @@ class WobbleGoal : LinearOpMode() {
     private fun zero() {
         telemetry.addData("Rings:", "Zero (no recognitions found)")
         telemetry.update()
-        robot?.driveFor(116.0)
+        robot.driveFor(116.0)
         drop()
     }
 
     private fun one() {
         telemetry.addData("Rings:", "One")
         telemetry.update()
-        robot?.startIntake()
-        robot?.driveFor(120.0)
-        robot?.stopIntake()
-        robot?.chassis(doubleArrayOf(0.0, 0.0, 1.0))
-        robot?.driveFor(12.0)
+        robot.startIntake()
+        robot.driveFor(120.0)
+        robot.stopIntake()
+        robot.chassis(doubleArrayOf(0.0, 0.0, 1.0))
+        robot.driveFor(12.0)
         drop()
     }
 
     private fun four() {
         telemetry.addData("Rings:", "Four")
         telemetry.update()
-        robot?.startIntake()
-        robot?.driveFor(150.0)
-        robot?.stopIntake()
+        robot.startIntake()
+        robot.driveFor(180.0)
+        robot.stopIntake()
         drop()
     }
 
     private fun drop() {
-        telemetry.addData("Dropping...", null)
-        telemetry.update()
-        transition(-1.0, 1.0)
-        robot?.waitFor(800)
-        robot?.openClaw()
-        robot?.waitFor(800)
-        transition(1.0, -1.0)
+        robot.brake()
+        robot.waitFor(2000)
+        transition(-1.0, 0.0)
+        robot.waitFor(2000)
+        robot.openClaw()
+        robot.waitFor(2000)
+        transition(0.0, -1.0)
+        robot.armStartup()
     }
 
     private fun transition(d1: Double, d2: Double) {
-        robot?.armPower(d1)
-        robot?.waitFor(10)
-        robot?.armPower((d1+d2)/2)
-        robot?.waitFor(10)
-        robot?.armPower(d2)
+        robot.armPower(d1)
+        robot.waitFor(10)
+        robot.armPower((d1+d2)/2)
+        robot.waitFor(10)
+        robot.armPower(d2)
     }
 
     /**
@@ -116,7 +119,7 @@ class WobbleGoal : LinearOpMode() {
         tfodParameters.minResultConfidence = 0.6f
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia)
         tfod!!.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
-        tfod!!.setZoom(1.2, 16.0 / 9.0)
+        tfod!!.setZoom(1.8, 16.0 / 9.0)
         tfod!!.activate()
     }
 

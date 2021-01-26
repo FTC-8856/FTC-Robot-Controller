@@ -116,14 +116,14 @@ class RobotHardware  /* Constructor */ {
         webcam = ahwMap.get(WebcamName::class.java, "gregcam")
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
-        //                                     F/B    L/R   TURN
-        motorMap[frontright] = arrayOf(-1.0, 0.935, -1.0)
-        motorMap[backright] = arrayOf(-1.0, -1.0, -1.0)
-        motorMap[frontleft] = arrayOf(-1.0, -0.935, 1.0)
-        motorMap[backleft] = arrayOf(-1.0, 1.0, 1.0)
+        //                              F/B    L/R   TURN
+        motorMap[frontright] = arrayOf(-0.97, 0.935, 1.0)
+        motorMap[backright] = arrayOf(-0.97, -1.0, 1.0)
+        motorMap[frontleft] = arrayOf(-1.0, -0.935, -1.0)
+        motorMap[backleft] = arrayOf(-0.97, 1.0, -1.0)
 
         // Set all motors to zero power
-        chassis(doubleArrayOf(0.0, 0.0, 0.0))
+        brake()
         armStartup()
         closeClaw()
     }
@@ -210,7 +210,7 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun startIntake() {
-        intake?.power = INTAKE_POWER
+        intake?.power = -1.0
     }
 
     fun stopIntake() {
@@ -218,7 +218,7 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun reverseIntake() {
-        intake?.power = -1 * INTAKE_POWER
+        intake?.power = 1.0
     }
 
     fun fire() {
@@ -275,7 +275,7 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun driveFor(inches: Double): Boolean {
-        return driveForWith(inches, doubleArrayOf(-1.0, -0.25, 0.0))
+        return driveForWith(inches, doubleArrayOf(-1.0, 0.0, 0.0))
     }
 
     private fun driveForWith(inches: Double, array: DoubleArray): Boolean {
@@ -285,13 +285,16 @@ class RobotHardware  /* Constructor */ {
         return value
     }
 
+    fun brake() {
+        chassis(doubleArrayOf(0.0, 0.0, 0.0))
+    }
+
     companion object {
         private const val CLOSE_CLAW = 0.6
         private const val OPEN_CLAW = 0.0
         private const val ARM_IN = 0.0
         private const val ARM_MID = 0.3
         private const val ARM_OUT = 0.95
-        private const val INTAKE_POWER = -1.0
         private const val INCHES_PER_SECOND = 52.5
     }
 }
