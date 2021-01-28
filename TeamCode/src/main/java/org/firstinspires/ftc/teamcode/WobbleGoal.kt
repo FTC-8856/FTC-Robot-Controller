@@ -16,10 +16,7 @@ class WobbleGoal : LinearOpMode() {
         initVuforia()
         initTfod()
         waitForStart()
-        robot.closeClaw()
-        robot.armStartup()
-        robot.driveFor(10.0)
-        robot.brake()
+        driveForward(10.0)
         robot.waitFor(1000)
         goTo()
     }
@@ -49,54 +46,78 @@ class WobbleGoal : LinearOpMode() {
                 }
             }
         } else {
-            telemetry.addData<Any>("no TensorFlow object detector found", null)
+            telemetry.addData("no TensorFlow object detector found", null)
         }
     }
 
     private fun zero() {
+        val forwardInches = 116.0
+
         telemetry.addData("Rings:", "Zero (no recognitions found)")
         telemetry.update()
-        robot.driveFor(116.0)
+
+        driveForward(forwardInches)
         drop()
     }
 
     private fun one() {
+        val leftInches =48.0
+        val forwardInches = 100.0
+
         telemetry.addData("Rings:", "One")
         telemetry.update()
-        robot.startIntake()
-        robot.driveFor(120.0)
-        robot.stopIntake()
-        robot.chassis(doubleArrayOf(0.0, 0.0, 1.0))
-        robot.driveFor(12.0)
+
+        driveLeft(leftInches)
+        driveForward(forwardInches)
         drop()
     }
 
     private fun four() {
+        val sideInches = 36.0
+        val forwardInches = 180.0
+
         telemetry.addData("Rings:", "Four")
         telemetry.update()
-        robot.startIntake()
-        robot.driveFor(180.0)
-        robot.stopIntake()
+
+        driveLeft(sideInches)
+        driveForward(forwardInches)
+        driveRight(sideInches)
         drop()
     }
 
-    private fun drop() {
+    private fun driveForward(inches: Double) {
+        robot.driveFor(inches, doubleArrayOf(1.0, 0.0, 0.0))
         robot.brake()
+    }
+
+    private fun driveLeft(inches: Double) {
+        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, -1.0))
+        robot.brake()
+    }
+
+    private fun driveRight(inches: Double) {
+        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, 1.0))
+        robot.brake()
+    }
+
+    private fun turnLeft(inches: Double) {
+        robot.driveFor(inches, doubleArrayOf(0.0, -1.0, 0.0))
+        robot.brake()
+    }
+
+    private fun turnRight(inches: Double) {
+        robot.driveFor(inches, doubleArrayOf(0.0, 1.0, 0.0))
+        robot.brake()
+    }
+
+    private fun drop() {
         robot.waitFor(2000)
-        transition(-1.0, 0.0)
+        robot.armPower(0.0)
         robot.waitFor(2000)
         robot.openClaw()
         robot.waitFor(2000)
-        transition(0.0, -1.0)
         robot.armStartup()
-    }
-
-    private fun transition(d1: Double, d2: Double) {
-        robot.armPower(d1)
-        robot.waitFor(10)
-        robot.armPower((d1+d2)/2)
-        robot.waitFor(10)
-        robot.armPower(d2)
+        robot.closeClaw()
     }
 
     /**
@@ -105,7 +126,7 @@ class WobbleGoal : LinearOpMode() {
     private fun initVuforia() {
         val parameters = VuforiaLocalizer.Parameters()
         parameters.vuforiaLicenseKey = VUFORIA_KEY
-        parameters.cameraName = robot!!.webcam
+        parameters.cameraName = robot.webcam
         vuforia = ClassFactory.getInstance().createVuforia(parameters)
     }
 

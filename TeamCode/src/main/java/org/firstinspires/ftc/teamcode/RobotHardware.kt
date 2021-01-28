@@ -57,8 +57,11 @@ class RobotHardware  /* Constructor */ {
     private var wobble: Servo? = null
     private var wobbleFinger: Servo? = null
     private var greg: ColorSensor? = null
+    private var leftFlywheel: DcMotor? = null
+    private var rightFlywheel: DcMotor? = null
+    private var shooter: Servo? = null
+    private var flap: Servo? = null
     var firePos = FirePosition.MEDIUM
-        private set
 
     /* Initialize standard Hardware interfaces */
     fun init(ahwMap: HardwareMap, features: String) {
@@ -75,6 +78,8 @@ class RobotHardware  /* Constructor */ {
         wobble = ahwMap.get(Servo::class.java, "wobble") // Wobble goal actuator arm rotator
         wobbleFinger = ahwMap.get(Servo::class.java, "wobbleFinger") // Wobble goal actuator arm "finger" grabber joint servo
         greg = ahwMap.get(ColorSensor::class.java, "greg") // Greg is our premier color sensor.
+        leftFlywheel = ahwMap.get(DcMotor::class.java, "leftflywheel")
+        rightFlywheel = ahwMap.get(DcMotor::class.java, "rightflywheel")
         //
         // This space has been left reserved for the firing mechanism devices when they are finished.
         //
@@ -88,9 +93,7 @@ class RobotHardware  /* Constructor */ {
         frontright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backleft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        if (intake != null) {
-            intake!!.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        }
+        intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         if (features.contains("imu")) {
             isImuEnabled = true
             imu = ahwMap.get(BNO055IMU::class.java, "imu")
@@ -128,13 +131,6 @@ class RobotHardware  /* Constructor */ {
         closeClaw()
     }
 
-    /* We'll come back to this function
-    public void hardwareStart(){
-        if(isImuEnabled) {
-            imu.startAccelerationIntegration();
-        }
-    }
-     */
     fun hardwareLoop() {
         if (isImuEnabled) {
             rot = imu?.angularOrientation
@@ -157,51 +153,22 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun chassis(joystick: DoubleArray) {
-        for ((key, values) in motorMap) {
+        for ((motor, values) in motorMap) {
             val power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2]
-            key.power = (-1.0).coerceAtLeast(power.coerceAtMost(1.0))
-        }
-    }
-
-    fun performAction(action: Action) {
-        when (action) {
-            Action.CLOSE_CLAW -> closeClaw()
-            Action.OPEN_CLAW -> openClaw()
-            Action.RETRACT_ARM -> armPower(0.0)
-            Action.EXTEND_ARM -> armPower(1.0)
-            Action.START_INTAKE -> startIntake()
-            Action.STOP_INTAKE -> stopIntake()
-            Action.REVERSE_INTAKE -> reverseIntake()
-            Action.FIRE_LOW -> {
-                firePos = FirePosition.LOW
-                fire()
-            }
-            Action.FIRE_MID -> {
-                firePos = FirePosition.MEDIUM
-                fire()
-            }
-            Action.FIRE_HIGH -> {
-                firePos = FirePosition.HIGH
-                fire()
-            }
-            Action.NONE -> {
-                // No action
-            }
+            motor.power = (-1.0).coerceAtLeast(power.coerceAtMost(1.0))
         }
     }
 
     fun closeClaw() {
-        if (wobbleFinger != null) {
-            wobbleFinger!!.position = CLOSE_CLAW
-        }
+        wobbleFinger?.position = CLOSE_CLAW
     }
 
     fun openClaw() {
-            wobbleFinger?.position = OPEN_CLAW
+        wobbleFinger?.position = OPEN_CLAW
     }
 
     fun armStartup() {
-       wobble?.position = ARM_IN
+        wobble?.position = ARM_IN
     }
 
     fun armPower(d: Double) {
@@ -222,43 +189,45 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun fire() {
-        if (firePos === FirePosition.HIGH) {
-            // To-do
+        flap?.position = when (firePos) {
+            FirePosition.HIGH -> 0.0
+            FirePosition.MEDIUM -> 0.0
+            FirePosition.LOW -> 0.0
         }
-        if (firePos === FirePosition.MEDIUM) {
-            // To-do
-        }
-        if (firePos === FirePosition.LOW) {
-            // To-do
-        }
+        waitFor(100)
+        shooter?.position = 1.0
+        waitFor(100)
+        shooter?.position = -1.0
     }
 
     fun decrementFirePosition() {
-        firePos = if (firePos === FirePosition.HIGH) {
-            FirePosition.MEDIUM
-        } else {
-            FirePosition.LOW
+        firePos = when (firePos) {
+            FirePosition.HIGH -> FirePosition.MEDIUM
+            FirePosition.MEDIUM -> FirePosition.LOW
+            FirePosition.LOW -> FirePosition.LOW
         }
     }
 
     fun incrementFirePosition() {
-        firePos = if (firePos === FirePosition.LOW) {
-            FirePosition.MEDIUM
-        } else {
-            FirePosition.HIGH
+        firePos = when (firePos) {
+            FirePosition.HIGH -> FirePosition.HIGH
+            FirePosition.MEDIUM -> FirePosition.HIGH
+            FirePosition.LOW -> FirePosition.MEDIUM
         }
     }
 
     fun startFlywheels() {
-        // Does nothing yet
+        leftFlywheel?.power = FLY1_POWER
+        rightFlywheel?.power = FLY2_POWER
     }
 
     fun stopFlywheels() {
-        // Does nothing yet
+        leftFlywheel?.power = 0.0
+        rightFlywheel?.power = 0.0
     }
 
     fun areFlywheelsRunning(): Boolean {
-        return true
+        return leftFlywheel!!.power > 0.2
     }
 
     fun gregArgb(): Int? {
@@ -274,15 +243,9 @@ class RobotHardware  /* Constructor */ {
         return true
     }
 
-    fun driveFor(inches: Double): Boolean {
-        return driveForWith(inches, doubleArrayOf(-1.0, 0.0, 0.0))
-    }
-
-    private fun driveForWith(inches: Double, array: DoubleArray): Boolean {
+    fun driveFor(inches: Double, array: DoubleArray): Boolean {
         chassis(array)
-        val value = waitFor((1000 * inches / INCHES_PER_SECOND).toLong())
-        chassis(doubleArrayOf(0.0, 0.0, 0.0))
-        return value
+        return waitFor((1000 * inches / INCHES_PER_SECOND).toLong())
     }
 
     fun brake() {
@@ -296,5 +259,7 @@ class RobotHardware  /* Constructor */ {
         private const val ARM_MID = 0.3
         private const val ARM_OUT = 0.95
         private const val INCHES_PER_SECOND = 52.5
+        private const val FLY1_POWER = 1.0
+        private const val FLY2_POWER = -1.0
     }
 }

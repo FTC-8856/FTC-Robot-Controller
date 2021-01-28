@@ -43,7 +43,7 @@ class GregBrain : OpMode() {
             brain!!.run(input_layer, output_layer)
         } // activate the  t h i n k i n g
         robot.chassis(doubleArrayOf(output_layer[0].toDouble(), output_layer[1].toDouble(), output_layer[2].toDouble()))
-        robot.performAction(decodeFloat(output_layer[3]))
+        performAction(output_layer[3])
     }
 
     override fun stop() {
@@ -51,37 +51,37 @@ class GregBrain : OpMode() {
         robot.hardwareStop()
     }
 
-    private fun decodeFloat(f: Float): Action {
+    private fun performAction(f: Float) {
         val f_11 = f / 11.0
         if (f_11 >= 0 && f_11 < 1) {
-            return Action.OPEN_CLAW
+            robot.openClaw()
         }
         if (f_11 >= 1 && f_11 < 2) {
-            return Action.CLOSE_CLAW
+            robot.closeClaw()
         }
         if (f_11 >= 2 && f_11 < 3) {
-            return Action.RETRACT_ARM
+            robot.armStartup()
         }
         if (f_11 >= 3 && f_11 < 4) {
-            return Action.EXTEND_ARM
+            robot.armPower(1.0)
         }
         if (f_11 >= 4 && f_11 < 5) {
-            return Action.START_INTAKE
+            robot.startIntake()
         }
         if (f_11 >= 5 && f_11 < 6) {
-            return Action.STOP_INTAKE
+            robot.stopIntake()
         }
         if (f_11 >= 6 && f_11 < 7) {
-            return Action.REVERSE_INTAKE
+            robot.reverseIntake()
         }
         if (f_11 >= 7 && f_11 < 8) {
-            return Action.FIRE_LOW
+            robot.firePos = FirePosition.LOW
         }
         if (f_11 >= 8 && f_11 < 9) {
-            return Action.FIRE_MID
+            robot.firePos = FirePosition.MEDIUM
         }
-        return if (f_11 >= 9 && f_11 < 10) {
-            Action.FIRE_HIGH
-        } else Action.NONE
+        if (f_11 >= 9 && f_11 < 10) {
+            robot.firePos = FirePosition.HIGH
+        }
     }
 }
