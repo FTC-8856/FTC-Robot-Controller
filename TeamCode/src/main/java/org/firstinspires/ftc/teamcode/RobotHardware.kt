@@ -36,6 +36,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation
 import org.firstinspires.ftc.robotcore.external.navigation.Position
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity
 import java.util.*
+import kotlin.math.roundToInt
 
 /**
  * This is NOT an opmode.
@@ -54,7 +55,7 @@ class RobotHardware  /* Constructor */ {
     var rot: Orientation? = null
         private set
     private var intake: DcMotor? = null
-    private var wobble: Servo? = null
+    private var wobble: DcMotor? = null
     private var wobbleFinger: Servo? = null
     private var greg: ColorSensor? = null
     private var leftFlywheel: DcMotor? = null
@@ -75,7 +76,7 @@ class RobotHardware  /* Constructor */ {
         val backleft = ahwMap.get(DcMotor::class.java, "backleft")
         val backright = ahwMap.get(DcMotor::class.java, "backright")
         intake = ahwMap.get(DcMotor::class.java, "intake") // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
-        wobble = ahwMap.get(Servo::class.java, "wobble") // Wobble goal actuator arm rotator
+        wobble = ahwMap.get(DcMotor::class.java, "wobble") // Wobble goal actuator arm rotator
         wobbleFinger = ahwMap.get(Servo::class.java, "wobbleFinger") // Wobble goal actuator arm "finger" grabber joint servo
         greg = ahwMap.get(ColorSensor::class.java, "greg") // Greg is our premier color sensor.
         leftFlywheel = ahwMap.get(DcMotor::class.java, "leftflywheel")
@@ -94,6 +95,7 @@ class RobotHardware  /* Constructor */ {
         backleft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        wobble?.mode = DcMotor.RunMode.RUN_TO_POSITION
         if (features.contains("imu")) {
             isImuEnabled = true
             imu = ahwMap.get(BNO055IMU::class.java, "imu")
@@ -168,12 +170,13 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun armStartup() {
-        wobble?.position = ARM_IN
+        wobble?.targetPosition = (ENC_CONV * ARM_IN).roundToInt()
+        wobble?.power = 0.5 // the maximum power it can set in order to reach the target position
     }
 
     fun armPower(d: Double) {
-        val position = ARM_MID + .5 * ((d + 1) * (ARM_OUT - ARM_MID))
-        wobble?.position = position
+        val position = (ENC_CONV*(ARM_MID + .5 * ((d + 1) * (ARM_OUT - ARM_MID)))).roundToInt()
+        wobble?.targetPosition = position
     }
 
     fun startIntake() {
@@ -261,5 +264,6 @@ class RobotHardware  /* Constructor */ {
         private const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0
+        private const val ENC_CONV = 120 // The value used to convert 0 -> 1 scalar to the encoder position and vice versa (currently unknown)
     }
 }
