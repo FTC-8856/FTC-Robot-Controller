@@ -7,9 +7,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Position
 
 @TeleOp(name = "Brave New World", group = "Pushbot")
-class BraveNewWorld : OpMode() {
-    private val robot = RobotHardware() // use the class created to define a Pushbot's hardware
-
+open class BraveNewWorld : OpMode() {
+    val robot = RobotHardware() // use the class created to define a Pushbot's hardware
+    open fun extendInit(){}
+    open fun extendLoop(){}
+    open fun extendStop(){}
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -18,6 +20,7 @@ class BraveNewWorld : OpMode() {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap, "imu")
+        extendInit()
     }
 
     /*
@@ -83,6 +86,7 @@ class BraveNewWorld : OpMode() {
         if (gamepad2.x) {
             robot.stopIntake()
         }
+        extendLoop()
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y)
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x)
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x)
@@ -92,12 +96,12 @@ class BraveNewWorld : OpMode() {
         telemetry.addData("Fire position", "%s", robot.firePos)
         telemetry.update()
     }
-
     /*
      * Code to run ONCE after the driver hits STOP
      */
     override fun stop() {
         robot.hardwareStop()
+        extendStop()
         telemetry.addData("Exit", "Goodest Good Job!")
         telemetry.update()
     }
