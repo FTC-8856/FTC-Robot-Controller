@@ -55,7 +55,7 @@ class RobotHardware  /* Constructor */ {
     var rot: Orientation? = null
         private set
     private var intake: DcMotor? = null
-    private var wobble: DcMotor? = null
+    /*private*/ var wobble: DcMotor? = null
     private var wobbleFinger: Servo? = null
     private var greg: ColorSensor? = null
     private var leftFlywheel: DcMotor? = null
@@ -97,6 +97,8 @@ class RobotHardware  /* Constructor */ {
         intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         armStartup()
         wobble?.mode = DcMotor.RunMode.RUN_TO_POSITION
+        armStartup()
+
         if (features.contains("imu")) {
             isImuEnabled = true
             imu = ahwMap.get(BNO055IMU::class.java, "imu")
@@ -172,6 +174,8 @@ class RobotHardware  /* Constructor */ {
     fun armStartup() {
         wobble?.targetPosition = (ENC_CONV * ARM_IN).roundToInt()
         wobble?.power = 0.5 // the maximum power it can set in order to reach the target position
+        wobble?.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        wobble?.direction = DcMotorSimple.Direction.FORWARD
     }
 
     fun armPower(d: Double) {
@@ -264,6 +268,6 @@ class RobotHardware  /* Constructor */ {
         private const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0
-        private const val ENC_CONV = 120 // The value used to convert 0 -> 1 scalar to the encoder position and vice versa (currently unknown)
+        private const val ENC_CONV = 288 // The value used to convert 0 -> 1 scalar to the encoder position and vice versa (currently unknown)
     }
 }
