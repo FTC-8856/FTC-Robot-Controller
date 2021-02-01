@@ -95,6 +95,7 @@ class RobotHardware  /* Constructor */ {
         backleft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        armStartup()
         wobble?.mode = DcMotor.RunMode.RUN_TO_POSITION
         if (features.contains("imu")) {
             isImuEnabled = true
@@ -129,7 +130,6 @@ class RobotHardware  /* Constructor */ {
 
         // Set all motors to zero power
         brake()
-        armStartup()
         closeClaw()
     }
 
