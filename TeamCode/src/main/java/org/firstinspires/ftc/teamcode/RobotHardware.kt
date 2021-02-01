@@ -95,6 +95,7 @@ class RobotHardware  /* Constructor */ {
         backleft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        wobble?.power = 1.0
         armStartup()
         wobble?.mode = DcMotor.RunMode.RUN_TO_POSITION
         armStartup()
@@ -125,10 +126,10 @@ class RobotHardware  /* Constructor */ {
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
         //                              F/B    L/R   TURN
-        motorMap[frontright] = arrayOf(-0.97, 0.935, 1.0)
-        motorMap[backright] = arrayOf(-0.97, -1.0, 1.0)
-        motorMap[frontleft] = arrayOf(-1.0, -0.935, -1.0)
-        motorMap[backleft] = arrayOf(-0.97, 1.0, -1.0)
+        motorMap[frontright] = arrayOf(0.98, 1.0, 1.0)
+        motorMap[backright] = arrayOf(0.97, -1.0, 1.0)
+        motorMap[frontleft] = arrayOf(1.0, -0.97, -1.0)
+        motorMap[backleft] = arrayOf(1.0, 1.0, -1.0)
 
         // Set all motors to zero power
         brake()
@@ -172,14 +173,17 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun armStartup() {
-        wobble?.targetPosition = (ENC_CONV * ARM_IN).roundToInt()
+        wobble?.targetPosition = ARM_IN
         wobble?.power = 0.5 // the maximum power it can set in order to reach the target position
         wobble?.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         wobble?.direction = DcMotorSimple.Direction.FORWARD
     }
 
     fun armPower(d: Double) {
-        val position = (ENC_CONV*(ARM_MID + .5 * ((d + 1) * (ARM_OUT - ARM_MID)))).roundToInt()
+        if (BuildConfig.DEBUG && !(d >= -1.0 && d <= 1.0)) {
+            error("Assertion failed")
+        }
+        val position = ((ARM_MID + .5 * ((d + 1) * (ARM_OUT - ARM_MID)))).roundToInt()
         wobble?.targetPosition = position
     }
 
@@ -259,15 +263,27 @@ class RobotHardware  /* Constructor */ {
         chassis(doubleArrayOf(0.0, 0.0, 0.0))
     }
 
+    fun tester() {
+        wobble?.targetPosition = 0
+        waitFor(1000)
+        wobble?.targetPosition = -1*288
+        waitFor(1000)
+        wobble?.targetPosition = -2*288
+        waitFor(1000)
+        wobble?.targetPosition = -3*288
+        waitFor (1000)
+        wobble?.targetPosition = -4*288
+        waitFor(1000)
+    }
+
     companion object {
         private const val CLOSE_CLAW = 0.6
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 0.0
-        private const val ARM_MID = 0.3
-        private const val ARM_OUT = 0.95
+        private const val ARM_IN = 0
+        private const val ARM_MID = 2
+        private const val ARM_OUT = 4
         private const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0
-        private const val ENC_CONV = 288 // The value used to convert 0 -> 1 scalar to the encoder position and vice versa (currently unknown)
     }
 }

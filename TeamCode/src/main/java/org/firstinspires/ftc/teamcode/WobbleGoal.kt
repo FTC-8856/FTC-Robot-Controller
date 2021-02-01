@@ -12,11 +12,15 @@ class WobbleGoal : LinearOpMode() {
     private var vuforia: VuforiaLocalizer? = null
     private var tfod: TFObjectDetector? = null
     override fun runOpMode() {
+        val firstForward = 10.0
+
         robot.init(hardwareMap, "")
         initVuforia()
         initTfod()
         waitForStart()
-        driveForward(10.0)
+        robot.tester()
+        driveForward(firstForward)
+        robot.tester()
         robot.waitFor(1000)
         goTo()
     }
@@ -25,7 +29,7 @@ class WobbleGoal : LinearOpMode() {
         if (tfod != null) {
             val recognitions = tfod!!.recognitions
             if (recognitions.isEmpty()) {
-                tfod?.shutdown()
+                tfod!!.shutdown()
                 zero()
             } else {
                 var oneConfidence = 0.0
@@ -61,7 +65,7 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun one() {
-        val leftInches =48.0
+        val leftInches = 48.0
         val forwardInches = 100.0
 
         telemetry.addData("Rings:", "One")
@@ -91,22 +95,22 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun driveLeft(inches: Double) {
-        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, -1.0))
-        robot.brake()
-    }
-
-    private fun driveRight(inches: Double) {
-        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, 1.0))
-        robot.brake()
-    }
-
-    private fun turnLeft(inches: Double) {
         robot.driveFor(inches, doubleArrayOf(0.0, -1.0, 0.0))
         robot.brake()
     }
 
-    private fun turnRight(inches: Double) {
+    private fun driveRight(inches: Double) {
         robot.driveFor(inches, doubleArrayOf(0.0, 1.0, 0.0))
+        robot.brake()
+    }
+
+    private fun turnLeft(inches: Double) {
+        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, -1.0))
+        robot.brake()
+    }
+
+    private fun turnRight(inches: Double) {
+        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, 1.0))
         robot.brake()
     }
 
@@ -134,13 +138,15 @@ class WobbleGoal : LinearOpMode() {
      * Initialize the TensorFlow Object Detection engine.
      */
     private fun initTfod() {
+        val zoom = 1.8
+
         val tfodMonitorViewId = hardwareMap.appContext.resources.getIdentifier(
                 "tfodMonitorViewId", "id", hardwareMap.appContext.packageName)
         val tfodParameters = TFObjectDetector.Parameters(tfodMonitorViewId)
         tfodParameters.minResultConfidence = 0.6f
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia)
         tfod!!.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
-        tfod!!.setZoom(1.8, 16.0 / 9.0)
+        tfod!!.setZoom(zoom, 16.0 / 9.0)
         tfod!!.activate()
     }
 
