@@ -11,17 +11,16 @@ class WobbleGoal : LinearOpMode() {
     private var robot: RobotHardware = RobotHardware()
     private var vuforia: VuforiaLocalizer? = null
     private var tfod: TFObjectDetector? = null
+
+
+
     override fun runOpMode() {
-        val firstForward = 10.0
 
         robot.init(hardwareMap, "")
         initVuforia()
         initTfod()
+        telemetry.addData("Waiting", null);
         waitForStart()
-        robot.tester()
-        driveForward(firstForward)
-        robot.tester()
-        robot.waitFor(1000)
         goTo()
     }
 
@@ -55,7 +54,7 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun zero() {
-        val forwardInches = 116.0
+        val forwardInches = 100.0
 
         telemetry.addData("Rings:", "Zero (no recognitions found)")
         telemetry.update()
@@ -90,38 +89,48 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun driveForward(inches: Double) {
-        robot.driveFor(inches, doubleArrayOf(1.0, 0.0, 0.0))
+        robot.chassis(doubleArrayOf(1.0, 0.0, 0.0))
+        sleep_inches(inches)
         robot.brake()
     }
 
     private fun driveLeft(inches: Double) {
-        robot.driveFor(inches, doubleArrayOf(0.0, -1.0, 0.0))
+        robot.chassis(doubleArrayOf(0.0, -1.0, 0.0))
+        sleep_inches(inches)
         robot.brake()
     }
 
     private fun driveRight(inches: Double) {
-        robot.driveFor(inches, doubleArrayOf(0.0, 1.0, 0.0))
+        robot.chassis(doubleArrayOf(0.0, 1.0, 0.0))
+        sleep_inches(inches)
         robot.brake()
     }
 
     private fun turnLeft(inches: Double) {
-        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, -1.0))
+        robot.chassis(doubleArrayOf(0.0, 0.0, -1.0))
+        sleep_inches(inches)
         robot.brake()
     }
 
     private fun turnRight(inches: Double) {
-        robot.driveFor(inches, doubleArrayOf(0.0, 0.0, 1.0))
+        robot.chassis(doubleArrayOf(0.0, 0.0, 1.0))
+        sleep_inches(inches)
         robot.brake()
     }
 
+
+    private fun sleep_inches(inches: Double) {
+        sleep((inches / (RobotHardware.INCHES_PER_SECOND / 1000)).toLong())
+    }
+
     private fun drop() {
-        robot.waitFor(2000)
-        robot.armPower(0.0)
-        robot.waitFor(2000)
+        robot.armPower(1.0)
+        sleep(1000)
         robot.openClaw()
-        robot.waitFor(2000)
-        robot.armStartup()
+        sleep(1000)
+        robot.armPower(-1.0)
         robot.closeClaw()
+        sleep(1000)
     }
 
     /**

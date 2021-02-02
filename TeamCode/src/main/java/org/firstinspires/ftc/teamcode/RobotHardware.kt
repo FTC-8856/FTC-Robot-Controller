@@ -95,10 +95,12 @@ class RobotHardware  /* Constructor */ {
         backleft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        wobble?.power = 1.0
-        armStartup()
+        wobble?.targetPosition = ARM_IN
+        wobble?.power = 0.5 // the maximum power it can set in order to reach the target position
+        wobble?.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        wobble?.direction = DcMotorSimple.Direction.FORWARD
         wobble?.mode = DcMotor.RunMode.RUN_TO_POSITION
-        armStartup()
+
 
         if (features.contains("imu")) {
             isImuEnabled = true
@@ -134,6 +136,8 @@ class RobotHardware  /* Constructor */ {
         // Set all motors to zero power
         brake()
         closeClaw()
+        armAtStartup()
+
     }
 
     fun hardwareLoop() {
@@ -160,7 +164,7 @@ class RobotHardware  /* Constructor */ {
     fun chassis(joystick: DoubleArray) {
         for ((motor, values) in motorMap) {
             val power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2]
-            motor.power = (-1.0).coerceAtLeast(power.coerceAtMost(1.0))
+            motor.power = power.coerceAtMost(1.0).coerceAtLeast(-1.0)
         }
     }
 
@@ -172,19 +176,18 @@ class RobotHardware  /* Constructor */ {
         wobbleFinger?.position = OPEN_CLAW
     }
 
-    fun armStartup() {
-        wobble?.targetPosition = ARM_IN
-        wobble?.power = 0.5 // the maximum power it can set in order to reach the target position
-        wobble?.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        wobble?.direction = DcMotorSimple.Direction.FORWARD
+    fun armPower(d: Double) : Boolean {
+        val newD = d.coerceAtMost(1.0).coerceAtLeast(-1.0)
+        return armGoTo(((ARM_OUT + .5 * ((newD + 1) * (ARM_MID - ARM_OUT))).roundToInt()))
     }
 
-    fun armPower(d: Double) {
-        if (BuildConfig.DEBUG && !(d >= -1.0 && d <= 1.0)) {
-            error("Assertion failed")
-        }
-        val position = ((ARM_MID + .5 * ((d + 1) * (ARM_OUT - ARM_MID)))).roundToInt()
-        wobble?.targetPosition = position
+    fun armAtStartup() : Boolean {
+        return armGoTo(ARM_IN)
+    }
+
+    fun armGoTo(position: Int) : Boolean {
+        wobble!!.targetPosition = position
+        return true
     }
 
     fun startIntake() {
@@ -205,9 +208,9 @@ class RobotHardware  /* Constructor */ {
             FirePosition.MEDIUM -> 0.0
             FirePosition.LOW -> 0.0
         }
-        waitFor(100)
+        Thread.sleep(100)
         shooter?.position = 1.0
-        waitFor(100)
+        Thread.sleep(100)
         shooter?.position = -1.0
     }
 
@@ -245,44 +248,17 @@ class RobotHardware  /* Constructor */ {
         return greg?.argb()
     }
 
-    fun waitFor(ms: Long): Boolean {
-        try {
-            Thread.sleep(ms)
-        } catch (ignored: Exception) {
-            return false
-        }
-        return true
-    }
-
-    fun driveFor(inches: Double, array: DoubleArray): Boolean {
-        chassis(array)
-        return waitFor((1000 * inches / INCHES_PER_SECOND).toLong())
-    }
-
     fun brake() {
         chassis(doubleArrayOf(0.0, 0.0, 0.0))
     }
 
-    fun tester() {
-        wobble?.targetPosition = 0
-        waitFor(1000)
-        wobble?.targetPosition = -1*288
-        waitFor(1000)
-        wobble?.targetPosition = -2*288
-        waitFor(1000)
-        wobble?.targetPosition = -3*288
-        waitFor (1000)
-        wobble?.targetPosition = -4*288
-        waitFor(1000)
-    }
-
     companion object {
-        private const val CLOSE_CLAW = 0.6
+        private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 0
-        private const val ARM_MID = 2
-        private const val ARM_OUT = 4
-        private const val INCHES_PER_SECOND = 52.5
+        private const val ARM_IN = 40
+        private const val ARM_MID = 0
+        private const val ARM_OUT = -70
+        public const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0
     }

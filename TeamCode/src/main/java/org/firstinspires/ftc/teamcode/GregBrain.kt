@@ -60,7 +60,7 @@ class GregBrain : OpMode() {
             robot.closeClaw()
         }
         if (f_11 >= 2 && f_11 < 3) {
-            robot.armStartup()
+            robot.armAtStartup()
         }
         if (f_11 >= 3 && f_11 < 4) {
             robot.armPower(1.0)

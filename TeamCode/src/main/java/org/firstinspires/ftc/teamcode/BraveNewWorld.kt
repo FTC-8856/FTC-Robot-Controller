@@ -59,7 +59,7 @@ open class BraveNewWorld : OpMode() {
             robot.closeClaw()
         }
         if (gamepad2.back) {
-            robot.armStartup()
+            robot.armAtStartup()
         }
         if (gamepad2.right_stick_button) {
             if (robot.areFlywheelsRunning()) {
@@ -92,7 +92,7 @@ open class BraveNewWorld : OpMode() {
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x)
         telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.rot?.thirdAngle, robot.rot?.secondAngle, robot.rot?.firstAngle)
         telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.pos?.x, robot.pos?.y, robot.pos?.z)
-        telemetry.addData("Enc. Pos & Target", "(%.2f) (%.2f)", robot.wobble?.currentPosition, robot.wobble?.targetPosition)
+        telemetry.addData("Enc. Pos & Target", "(%d)", robot.wobble?.currentPosition, robot.wobble?.targetPosition)
         telemetry.addData("Fire position", "%s", robot.firePos)
         telemetry.update()
     }

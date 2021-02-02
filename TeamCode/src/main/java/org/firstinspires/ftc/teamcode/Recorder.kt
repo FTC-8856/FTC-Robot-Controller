@@ -44,7 +44,7 @@ class Recorder : BraveNewWorld() {
         telemetry.speak("Make your choice")
         telemetry.update()
         while(!gamepad1.a && !gamepad1.b){
-            robot.waitFor(5)
+            Thread.sleep(5)
         }
         if(gamepad1.a){
             val ostream = ObjectOutputStream(FileOutputStream("autonomous.recording")) // no unique file name for now, we'll do that later
@@ -53,12 +53,12 @@ class Recorder : BraveNewWorld() {
         }
         telemetry.addLine("Stopping in 3")
         telemetry.update()
-        robot.waitFor(1000)
+        Thread.sleep(1000)
         telemetry.addLine("Stopping in 2")
         telemetry.update()
-        robot.waitFor(1000)
+        Thread.sleep(1000)
         telemetry.addLine("Stopping in 1")
         telemetry.update()
-        robot.waitFor(1000)
+        Thread.sleep(1000)
     }
 }
