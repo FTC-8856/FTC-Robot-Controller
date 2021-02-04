@@ -8,8 +8,8 @@ import java.io.ObjectOutputStream
 @TeleOp(name = "ריקורדר", group = "autotrain")
 class Recorder : BraveNewWorld() {
     private val actionsList = mutableListOf<ByteArray>()
-    private var startTimestamp : Long = 0
-    override fun extendInit(){
+    private var startTimestamp: Long = 0
+    override fun extendInit() {
         telemetry.speak("Prepare thyself, recording is to commence on start")
         telemetry.update()
     }
@@ -18,8 +18,8 @@ class Recorder : BraveNewWorld() {
         actionsList.add(gamepad1.toByteArray()) // To make sure things start out at 0 (may cause issues with timestamp)
         startTimestamp = System.currentTimeMillis()
         Gamepad.GamepadCallback { // Add new callback to when any event is fired on the gamepads
-            if(it.id == gamepad1.id){ // Just record gamepad1 for now
-                val timestamp = System.currentTimeMillis()-startTimestamp
+            if (it.id == gamepad1.id) { // Just record gamepad1 for now
+                val timestamp = System.currentTimeMillis() - startTimestamp
                 var tempGamepad = Gamepad()
                 tempGamepad.copy(gamepad1) // Copy gamepad state
                 tempGamepad.timestamp = timestamp // Replace timestamp with our absolute stamp
@@ -43,10 +43,10 @@ class Recorder : BraveNewWorld() {
         telemetry.addLine("Press B to EXIT w/o SAVING")
         telemetry.speak("Make your choice")
         telemetry.update()
-        while(!gamepad1.a && !gamepad1.b){
+        while (!gamepad1.a && !gamepad1.b) {
             Thread.sleep(5)
         }
-        if(gamepad1.a){
+        if (gamepad1.a) {
             val ostream = ObjectOutputStream(FileOutputStream("autonomous.recording")) // no unique file name for now, we'll do that later
             ostream.writeObject(actionsList)
             ostream.close()

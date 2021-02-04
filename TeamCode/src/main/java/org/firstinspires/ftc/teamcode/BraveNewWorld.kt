@@ -9,9 +9,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position
 @TeleOp(name = "Brave New World", group = "Pushbot")
 open class BraveNewWorld : OpMode() {
     val robot = RobotHardware() // use the class created to define a Pushbot's hardware
-    open fun extendInit(){}
-    open fun extendLoop(){}
-    open fun extendStop(){}
+    open fun extendInit() {}
+    open fun extendLoop() {}
+    open fun extendStop() {}
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -96,6 +97,7 @@ open class BraveNewWorld : OpMode() {
         telemetry.addData("Fire position", "%s", robot.firePos)
         telemetry.update()
     }
+
     /*
      * Code to run ONCE after the driver hits STOP
      */

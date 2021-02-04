@@ -81,6 +81,7 @@ class RobotHardware  /* Constructor */ {
         greg = ahwMap.get(ColorSensor::class.java, "greg") // Greg is our premier color sensor.
         leftFlywheel = ahwMap.get(DcMotor::class.java, "leftflywheel")
         rightFlywheel = ahwMap.get(DcMotor::class.java, "rightflywheel")
+        shooter = ahwMap.get(Servo::class.java, "shooter")
         //
         // This space has been left reserved for the firing mechanism devices when they are finished.
         //
@@ -176,16 +177,16 @@ class RobotHardware  /* Constructor */ {
         wobbleFinger?.position = OPEN_CLAW
     }
 
-    fun armPower(d: Double) : Boolean {
+    fun armPower(d: Double): Boolean {
         val newD = d.coerceAtMost(1.0).coerceAtLeast(-1.0)
         return armGoTo(((ARM_OUT + .5 * ((newD + 1) * (ARM_MID - ARM_OUT))).roundToInt()))
     }
 
-    fun armAtStartup() : Boolean {
+    fun armAtStartup(): Boolean {
         return armGoTo(ARM_IN)
     }
 
-    fun armGoTo(position: Int) : Boolean {
+    fun armGoTo(position: Int): Boolean {
         wobble!!.targetPosition = position
         return true
     }
@@ -255,11 +256,11 @@ class RobotHardware  /* Constructor */ {
     companion object {
         private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 40
+        private const val ARM_IN = 20
         private const val ARM_MID = 0
         private const val ARM_OUT = -70
-        public const val INCHES_PER_SECOND = 52.5
-        private const val FLY1_POWER = 1.0
-        private const val FLY2_POWER = -1.0
+        const val INCHES_PER_SECOND = 52.5
+        private const val FLY1_POWER = -1.0
+        private const val FLY2_POWER = 1.0
     }
 }
