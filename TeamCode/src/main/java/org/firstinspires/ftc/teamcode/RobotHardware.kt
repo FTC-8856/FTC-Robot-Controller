@@ -138,7 +138,7 @@ class RobotHardware  /* Constructor */ {
         brake()
         closeClaw()
         armAtStartup()
-
+        shooter?.position= SHOOTER_IN
     }
 
     fun hardwareLoop() {
@@ -210,9 +210,9 @@ class RobotHardware  /* Constructor */ {
             FirePosition.LOW -> 0.0
         }
         Thread.sleep(100)
-        shooter?.position = 1.0
+        shooter?.position = SHOOTER_OUT
         Thread.sleep(100)
-        shooter?.position = -1.0
+        shooter?.position = SHOOTER_IN
     }
 
     fun decrementFirePosition() {
@@ -262,5 +262,7 @@ class RobotHardware  /* Constructor */ {
         const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = -1.0
         private const val FLY2_POWER = 1.0
+        private const val SHOOTER_IN = 1.0
+        private const val SHOOTER_OUT = -1.0
     }
 }
