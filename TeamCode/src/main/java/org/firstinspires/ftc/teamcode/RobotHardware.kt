@@ -55,7 +55,7 @@ class RobotHardware  /* Constructor */ {
     var rot: Orientation? = null
         private set
     private var intake: DcMotor? = null
-    /*private*/ var wobble: DcMotor? = null
+    /*private*/ var wobble: Servo? = null
     private var wobbleFinger: Servo? = null
     private var greg: ColorSensor? = null
     private var leftFlywheel: DcMotor? = null
@@ -76,7 +76,7 @@ class RobotHardware  /* Constructor */ {
         val backleft = ahwMap.get(DcMotor::class.java, "backleft")
         val backright = ahwMap.get(DcMotor::class.java, "backright")
         intake = ahwMap.get(DcMotor::class.java, "intake") // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
-        wobble = ahwMap.get(DcMotor::class.java, "wobble") // Wobble goal actuator arm rotator
+        wobble = ahwMap.get(Servo::class.java, "wobble") // Wobble goal actuator arm rotator
         wobbleFinger = ahwMap.get(Servo::class.java, "wobbleFinger") // Wobble goal actuator arm "finger" grabber joint servo
         greg = ahwMap.get(ColorSensor::class.java, "greg") // Greg is our premier color sensor.
         leftFlywheel = ahwMap.get(DcMotor::class.java, "leftflywheel")
@@ -96,12 +96,7 @@ class RobotHardware  /* Constructor */ {
         backleft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        wobble?.targetPosition = ARM_IN
-        wobble?.power = 0.5 // the maximum power it can set in order to reach the target position
-        wobble?.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        wobble?.direction = DcMotorSimple.Direction.FORWARD
-        wobble?.mode = DcMotor.RunMode.RUN_TO_POSITION
-
+        armAtStartup()
 
         if (features.contains("imu")) {
             isImuEnabled = true
@@ -137,7 +132,6 @@ class RobotHardware  /* Constructor */ {
         // Set all motors to zero power
         brake()
         closeClaw()
-        armAtStartup()
         shooter?.position= SHOOTER_IN
     }
 
@@ -177,18 +171,17 @@ class RobotHardware  /* Constructor */ {
         wobbleFinger?.position = OPEN_CLAW
     }
 
-    fun armPower(d: Double): Boolean {
-        val newD = d.coerceAtMost(1.0).coerceAtLeast(-1.0)
-        return armGoTo(((ARM_OUT + .5 * ((newD + 1) * (ARM_MID - ARM_OUT))).roundToInt()))
+    fun armAtStartup() {
+        setArmPosition(ARM_IN)
     }
 
-    fun armAtStartup(): Boolean {
-        return armGoTo(ARM_IN)
+    fun setArmPosition(d: Double) {
+        wobble?.position = d
     }
 
-    fun armGoTo(position: Int): Boolean {
-        wobble!!.targetPosition = position
-        return true
+    fun armPower(d: Double) {
+        val position = (((d - 1.0) / 2.0) * (ARM_MID - ARM_OUT) + ARM_OUT)
+        setArmPosition(position.coerceAtMost(1.0).coerceAtLeast(-1.0))
     }
 
     fun startIntake() {
@@ -256,9 +249,9 @@ class RobotHardware  /* Constructor */ {
     companion object {
         private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 20
-        private const val ARM_MID = 0
-        private const val ARM_OUT = -70
+        private const val ARM_IN = 0.25
+        private const val ARM_MID = 0.125
+        private const val ARM_OUT = 0
         const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = -1.0
         private const val FLY2_POWER = 1.0

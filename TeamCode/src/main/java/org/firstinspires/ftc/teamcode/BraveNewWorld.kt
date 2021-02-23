@@ -53,7 +53,7 @@ open class BraveNewWorld : OpMode() {
         robot.chassis(doubleArrayOf(gamepad1.right_stick_y.toDouble(), gamepad1.right_stick_x.toDouble(), gamepad1.left_stick_x.toDouble()))
         val hsv = floatArrayOf(0f, 0f, 0f)
         Color.colorToHSV(robot.gregArgb()!!, hsv)
-        robot.armPower(gamepad2.left_stick_y.toDouble())
+        robot.wobble?.position = (gamepad2.left_stick_y.toDouble())
         if (gamepad2.right_bumper) {
             robot.openClaw()
         } else if (gamepad2.right_trigger > 0.1) {
@@ -93,7 +93,6 @@ open class BraveNewWorld : OpMode() {
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x)
         telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.rot?.thirdAngle, robot.rot?.secondAngle, robot.rot?.firstAngle)
         telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.pos?.x, robot.pos?.y, robot.pos?.z)
-        telemetry.addData("Enc. Pos & Target", "(%d)", robot.wobble?.currentPosition, robot.wobble?.targetPosition)
         telemetry.addData("Fire position", "%s", robot.firePos)
         telemetry.update()
     }
