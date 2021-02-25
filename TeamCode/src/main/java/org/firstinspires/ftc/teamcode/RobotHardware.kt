@@ -57,7 +57,7 @@ class RobotHardware  /* Constructor */ {
     private var intake: DcMotor? = null
     /*private*/ var wobble: Servo? = null
     private var wobbleFinger: Servo? = null
-    private var greg: ColorSensor? = null
+    //private var greg: ColorSensor? = null
     private var leftFlywheel: DcMotor? = null
     private var rightFlywheel: DcMotor? = null
     private var shooter: Servo? = null
@@ -78,16 +78,10 @@ class RobotHardware  /* Constructor */ {
         intake = ahwMap.get(DcMotor::class.java, "intake") // S c o o p s  the rings into the hopper to be shot at unsuspecting power shots and tower goals
         wobble = ahwMap.get(Servo::class.java, "wobble") // Wobble goal actuator arm rotator
         wobbleFinger = ahwMap.get(Servo::class.java, "wobbleFinger") // Wobble goal actuator arm "finger" grabber joint servo
-        greg = ahwMap.get(ColorSensor::class.java, "greg") // Greg is our premier color sensor.
+        //greg = ahwMap.get(ColorSensor::class.java, "greg") // Greg is our premier color sensor.
         leftFlywheel = ahwMap.get(DcMotor::class.java, "leftflywheel")
         rightFlywheel = ahwMap.get(DcMotor::class.java, "rightflywheel")
         shooter = ahwMap.get(Servo::class.java, "shooter")
-        //
-        // This space has been left reserved for the firing mechanism devices when they are finished.
-        //
-        backleft.direction = DcMotorSimple.Direction.REVERSE
-        frontleft.direction = DcMotorSimple.Direction.REVERSE
-
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
@@ -96,7 +90,6 @@ class RobotHardware  /* Constructor */ {
         backleft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         backright.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         intake?.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        armAtStartup()
 
         if (features.contains("imu")) {
             isImuEnabled = true
@@ -124,15 +117,16 @@ class RobotHardware  /* Constructor */ {
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
         //                              F/B    L/R   TURN
-        motorMap[frontright] = arrayOf(0.98, 1.0, 1.0)
-        motorMap[backright] = arrayOf(0.97, -1.0, 1.0)
-        motorMap[frontleft] = arrayOf(1.0, -0.97, -1.0)
-        motorMap[backleft] = arrayOf(1.0, 1.0, -1.0)
+        motorMap[frontright] = arrayOf(-1.0, 1.0, -1.0)
+        motorMap[backright] = arrayOf(-1.0, -1.0, -1.0)
+        motorMap[frontleft] = arrayOf(1.0, 1.0, -1.0)
+        motorMap[backleft] = arrayOf(1.0, -1.0, -1.0)
 
         // Set all motors to zero power
         brake()
         closeClaw()
         shooter?.position= SHOOTER_IN
+        armAtStartup()
     }
 
     fun hardwareLoop() {
@@ -172,16 +166,13 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun armAtStartup() {
-        setArmPosition(ARM_IN)
-    }
-
-    fun setArmPosition(d: Double) {
-        wobble?.position = d
+        wobble?.position = ARM_IN
     }
 
     fun armPower(d: Double) {
-        val position = (((d - 1.0) / 2.0) * (ARM_MID - ARM_OUT) + ARM_OUT)
-        setArmPosition(position.coerceAtMost(1.0).coerceAtLeast(-1.0))
+        val zeroToOne = (d + 1.0) / 2.0
+        val position = (zeroToOne * (ARM_OUT - ARM_MID) + ARM_MID)
+        wobble?.position = (position.coerceAtMost(1.0).coerceAtLeast(0.0))
     }
 
     fun startIntake() {
@@ -238,10 +229,6 @@ class RobotHardware  /* Constructor */ {
         return leftFlywheel!!.power > 0.2
     }
 
-    fun gregArgb(): Int? {
-        return greg?.argb()
-    }
-
     fun brake() {
         chassis(doubleArrayOf(0.0, 0.0, 0.0))
     }
@@ -249,13 +236,13 @@ class RobotHardware  /* Constructor */ {
     companion object {
         private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 0.25
-        private const val ARM_MID = 0.125
-        private const val ARM_OUT = 0
+        private const val ARM_IN = 1.0
+        private const val ARM_MID = 0.6
+        private const val ARM_OUT = 0.14
         const val INCHES_PER_SECOND = 52.5
-        private const val FLY1_POWER = -1.0
-        private const val FLY2_POWER = 1.0
+        private const val FLY1_POWER = 1.0
+        private const val FLY2_POWER = -1.0
         private const val SHOOTER_IN = 1.0
-        private const val SHOOTER_OUT = -1.0
+        private const val SHOOTER_OUT = 0.0
     }
 }
