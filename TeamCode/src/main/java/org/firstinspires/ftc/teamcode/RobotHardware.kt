@@ -61,8 +61,6 @@ class RobotHardware  /* Constructor */ {
     private var leftFlywheel: DcMotor? = null
     private var rightFlywheel: DcMotor? = null
     private var shooter: Servo? = null
-    private var flap: Servo? = null
-    var firePos = FirePosition.MEDIUM
 
     /* Initialize standard Hardware interfaces */
     fun init(ahwMap: HardwareMap, features: String) {
@@ -117,10 +115,10 @@ class RobotHardware  /* Constructor */ {
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
         //                              F/B    L/R   TURN
-        motorMap[frontright] = arrayOf(-1.0, 1.0, -1.0)
-        motorMap[backright] = arrayOf(-1.0, -1.0, -1.0)
-        motorMap[frontleft] = arrayOf(1.0, 1.0, -1.0)
-        motorMap[backleft] = arrayOf(1.0, -1.0, -1.0)
+        motorMap[frontright] = arrayOf(1.0, 1.0, -1.0)
+        motorMap[backright] = arrayOf(1.0, -1.0, -1.0)
+        motorMap[frontleft] = arrayOf(-1.0, 1.0, -1.0)
+        motorMap[backleft] = arrayOf(-1.0, -1.0, -1.0)
 
         // Set all motors to zero power
         brake()
@@ -166,13 +164,13 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun armAtStartup() {
+        wobble?.scaleRange(0.0, 1.0)
         wobble?.position = ARM_IN
+        wobble?.scaleRange(ARM_OUT, ARM_MID)
     }
 
     fun armPower(d: Double) {
-        val zeroToOne = (d + 1.0) / 2.0
-        val position = (zeroToOne * (ARM_OUT - ARM_MID) + ARM_MID)
-        wobble?.position = (position.coerceAtMost(1.0).coerceAtLeast(0.0))
+        wobble?.position = d
     }
 
     fun startIntake() {
@@ -188,33 +186,10 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun fire() {
-        flap?.position = when (firePos) {
-            FirePosition.HIGH -> 0.0
-            FirePosition.MEDIUM -> 0.0
-            FirePosition.LOW -> 0.0
-        }
-        Thread.sleep(100)
         shooter?.position = SHOOTER_OUT
-        Thread.sleep(100)
+        Thread.sleep(1000)
         shooter?.position = SHOOTER_IN
     }
-
-    fun decrementFirePosition() {
-        firePos = when (firePos) {
-            FirePosition.HIGH -> FirePosition.MEDIUM
-            FirePosition.MEDIUM -> FirePosition.LOW
-            FirePosition.LOW -> FirePosition.LOW
-        }
-    }
-
-    fun incrementFirePosition() {
-        firePos = when (firePos) {
-            FirePosition.HIGH -> FirePosition.HIGH
-            FirePosition.MEDIUM -> FirePosition.HIGH
-            FirePosition.LOW -> FirePosition.MEDIUM
-        }
-    }
-
     fun startFlywheels() {
         leftFlywheel?.power = FLY1_POWER
         rightFlywheel?.power = FLY2_POWER
@@ -236,13 +211,13 @@ class RobotHardware  /* Constructor */ {
     companion object {
         private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 1.0
+        private const val ARM_IN = 0.9
         private const val ARM_MID = 0.6
         private const val ARM_OUT = 0.14
         const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0
-        private const val SHOOTER_IN = 1.0
+        private const val SHOOTER_IN = 2.75
         private const val SHOOTER_OUT = 0.0
     }
 }

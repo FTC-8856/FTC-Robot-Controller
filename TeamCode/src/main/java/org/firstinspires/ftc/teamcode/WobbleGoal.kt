@@ -17,42 +17,55 @@ class WobbleGoal : LinearOpMode() {
         initVuforia()
         initTfod()
         telemetry.addData("Waiting", null)
+        val recognized = getRecognition()
         waitForStart()
-        goTo()
+        when (recognized) {
+            0 -> zero()
+            1 -> one()
+            4 -> four()
+        }
     }
 
-    private fun goTo() {
+    private fun getRecognition() : Int {
         val recognitions = tfod!!.recognitions
         if (recognitions.isEmpty()) {
             tfod!!.shutdown()
-            zero()
+
+            telemetry.addData("Rings:", "Zero (no recognitions found)")
+            telemetry.update()
+
+            return 0
         } else {
             var oneConfidence = 0.0
             var fourConfidence = 0.0
             for (recognition in recognitions) {
-                if (recognition.label == LABEL_SECOND_ELEMENT) {
-                    oneConfidence = recognition.confidence.toDouble()
-                } else if (recognition.label == LABEL_FIRST_ELEMENT) {
-                    fourConfidence = recognition.confidence.toDouble()
+                val confidence = recognition.confidence.toDouble()
+                if (recognition.label == LABEL_SECOND_ELEMENT && confidence > oneConfidence) {
+                    oneConfidence = confidence
+                }
+                if (recognition.label == LABEL_FIRST_ELEMENT && confidence > fourConfidence) {
+                    fourConfidence = confidence
                 }
             }
-            if (fourConfidence > oneConfidence) {
-                tfod!!.shutdown()
-                four()
+            tfod!!.shutdown()
+            return if (fourConfidence < oneConfidence) {
+                telemetry.addData("Rings:", "One")
+                telemetry.update()
+
+                1
             } else {
-                tfod!!.shutdown()
-                one()
+                telemetry.addData("Rings:", "Four")
+                telemetry.update()
+
+                4
             }
         }
     }
 
     private fun zero() {
-        val forwardInches = 85.0
+        val forwardInches = 65.0
         val turnLeftInches = 80.0
         val leftInches = 18.0
-
-        telemetry.addData("Rings:", "Zero (no recognitions found)")
-        telemetry.update()
 
         driveForward(inches = forwardInches)
         turnLeft(inches = turnLeftInches)
@@ -64,9 +77,6 @@ class WobbleGoal : LinearOpMode() {
         val sideInches = 36.0
         val forwardInches = 100.0
 
-        telemetry.addData("Rings:", "One")
-        telemetry.update()
-
         driveLeft(inches = sideInches)
         driveForward(inches = forwardInches)
         driveRight(inches = sideInches)
@@ -77,9 +87,6 @@ class WobbleGoal : LinearOpMode() {
         val leftInches = 36.0
         val forwardInches = 110.0
         val rightInches = 48.0
-
-        telemetry.addData("Rings:", "Four")
-        telemetry.update()
 
         driveLeft(inches = leftInches)
         driveForward(inches = forwardInches)
@@ -162,6 +169,6 @@ class WobbleGoal : LinearOpMode() {
         private const val LABEL_FIRST_ELEMENT = "Quad"
         private const val LABEL_SECOND_ELEMENT = "Single"
         private const val VUFORIA_KEY = "AUAWFpz/////AAABmVwtdR5e/EuYge3oIRmKWEsX1ls1SEgysmAKbYVf8clIR74ciZ7+ucQX+zdIHUmJKWSbIBsZsJpXPgDONKCMYc2Ybsg4Wy7362azDSVNBmZEtKSeEVFG7d2NKTTsiJgX3KkQE75T0TYXcaxc5A/CIgQ63d9Xv/vmN5ytCt4Lkur9sB3ZyTnSUNbn3b3e0H+tt0mHYeksYP/+CRL7WlOSXyz02VRf7AqlzT62V7VXSbkWzWx3EwC7y5Oe7vQ/MLAO+e7fgOaybwZyO4bFVreLY/2pojB2ciMg2Sb8eyIjsLvMXAfPCOwpY3OkWsvFWuZxR5gdfvNGC0q57H3xpFHpXHv9sG1KPJTxL9MROn3KfNtd"
-        private const val ZOOM = 1.7
+        private const val ZOOM = 1.9
     }
 }
