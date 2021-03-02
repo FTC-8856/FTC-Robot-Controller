@@ -86,7 +86,7 @@ open class BraveNewWorld : OpMode() {
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x)
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x)
         telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.rot?.thirdAngle, robot.rot?.secondAngle, robot.rot?.firstAngle)
-        telemetry.addData("Pos", "(%.2fm, %.2fm, %.2fm)", robot.pos?.x, robot.pos?.y, robot.pos?.z)
+        telemetry.addData("Flywheel Current", "(%.2fm)", robot.flywheelCurrentDraw())
         telemetry.addData("Arm position", "%.2f", robot.wobble?.position)
         telemetry.update()
     }

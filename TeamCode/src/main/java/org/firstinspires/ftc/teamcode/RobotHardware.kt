@@ -35,6 +35,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation
 import org.firstinspires.ftc.robotcore.external.navigation.Position
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity
+import org.openftc.revextensions2.ExpansionHubEx
+import org.openftc.revextensions2.ExpansionHubMotor
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -59,7 +61,9 @@ class RobotHardware  /* Constructor */ {
     private var wobbleFinger: Servo? = null
     //private var greg: ColorSensor? = null
     private var leftFlywheel: DcMotor? = null
+    private var leftFlyMonitor: ExpansionHubMotor? = null
     private var rightFlywheel: DcMotor? = null
+    private var rightFlyMonitor: ExpansionHubMotor? = null
     private var shooter: Servo? = null
 
     /* Initialize standard Hardware interfaces */
@@ -80,6 +84,10 @@ class RobotHardware  /* Constructor */ {
         leftFlywheel = ahwMap.get(DcMotor::class.java, "leftflywheel")
         rightFlywheel = ahwMap.get(DcMotor::class.java, "rightflywheel")
         shooter = ahwMap.get(Servo::class.java, "shooter")
+
+        // Power Monitors (thanks OpenFTC)
+        leftFlyMonitor = leftFlywheel as ExpansionHubMotor
+        rightFlyMonitor = rightFlywheel as ExpansionHubMotor
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
@@ -208,6 +216,10 @@ class RobotHardware  /* Constructor */ {
         chassis(doubleArrayOf(0.0, 0.0, 0.0))
     }
 
+    fun flywheelCurrentDraw(): Double {
+        return(leftFlyMonitor!!.getCurrentDraw(AMPS) + rightFlyMonitor!!.getCurrentDraw(AMPS))
+    }
+
     companion object {
         private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
@@ -219,5 +231,6 @@ class RobotHardware  /* Constructor */ {
         private const val FLY2_POWER = -1.0
         private const val SHOOTER_IN = 2.75
         private const val SHOOTER_OUT = 0.0
+        private val AMPS = ExpansionHubEx.CurrentDrawUnits.AMPS
     }
 }
