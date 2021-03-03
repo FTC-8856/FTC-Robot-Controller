@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Position
+import kotlin.math.max
 
 @TeleOp(name = "Brave New World", group = "Pushbot")
 open class BraveNewWorld : OpMode() {
@@ -15,6 +16,8 @@ open class BraveNewWorld : OpMode() {
     open fun extendInit() {}
     open fun extendLoop() {}
     open fun extendStop() {}
+
+    var maxCurrent = 0.0
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -79,11 +82,18 @@ open class BraveNewWorld : OpMode() {
         if (gamepad2.x) {
             robot.stopIntake()
         }
+        if(gamepad2.left_trigger < 0.5){
+            maxCurrent = max(maxCurrent, robot.flywheelCurrentDraw())
+        }
+        else{
+            maxCurrent = 0.0
+        }
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y)
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x)
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x)
         telemetry.addData("Rot", "(%.2f, %.2f, %.2f)", robot.rot?.thirdAngle, robot.rot?.secondAngle, robot.rot?.firstAngle)
         telemetry.addData("Flywheel Current", "%.4fA", robot.flywheelCurrentDraw())
+        telemetry.addData("Max Flywhl. Current", "%.4fA", maxCurrent)
         telemetry.addData("Arm position", "%.2f", robot.wobble?.position)
         telemetry.update()
     }
@@ -94,7 +104,7 @@ open class BraveNewWorld : OpMode() {
     override fun stop() {
         robot.hardwareStop()
         extendStop()
-        telemetry.addData("Exit", "Goodest Good Job!")
+        telemetry.speak("Goodest Good Job")
         telemetry.update()
     }
 }
