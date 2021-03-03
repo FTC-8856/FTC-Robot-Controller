@@ -157,9 +157,13 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun chassis(joystick: DoubleArray) {
-        for ((motor, values) in motorMap) {
-            val power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2]
-            motor.power = power.coerceAtMost(1.0).coerceAtLeast(-1.0)
+        if (joystick.contentEquals(doubleArrayOf(0.0, 0.0, 0.0))) {
+            brake()
+        } else {
+            for ((motor, values) in motorMap) {
+                val power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2]
+                motor.power = power.coerceAtMost(1.0).coerceAtLeast(-1.0)
+            }
         }
     }
 
@@ -223,9 +227,9 @@ class RobotHardware  /* Constructor */ {
     companion object {
         private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 0.9
+        private const val ARM_IN = 0.14
         private const val ARM_MID = 0.6
-        private const val ARM_OUT = 0.14
+        private const val ARM_OUT = 0.9
         const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0

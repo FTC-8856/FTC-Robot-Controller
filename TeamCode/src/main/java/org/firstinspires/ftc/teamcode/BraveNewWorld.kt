@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode
 import android.graphics.Color
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.Gamepad
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Position
 
@@ -23,7 +24,6 @@ open class BraveNewWorld : OpMode() {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap, "imu")
-        extendInit()
     }
 
     /*
@@ -53,21 +53,19 @@ open class BraveNewWorld : OpMode() {
     override fun loop() {
         robot.hardwareLoop()
         robot.chassis(doubleArrayOf(-gamepad1.right_stick_y.toDouble(), gamepad1.right_stick_x.toDouble(), gamepad1.left_stick_x.toDouble()))
-        robot.armPower(-gamepad2.left_stick_y.toDouble())
+        robot.armPower(gamepad2.left_stick_y.toDouble())
         if (gamepad2.right_bumper) {
             robot.openClaw()
-        } else if (gamepad2.right_trigger > 0.1) {
+        } else {
             robot.closeClaw()
         }
         if (gamepad2.left_bumper) {
             robot.armAtStartup()
         }
         if (gamepad2.right_stick_button) {
-            if (robot.areFlywheelsRunning()) {
-                robot.stopFlywheels()
-            } else {
-                robot.startFlywheels()
-            }
+            robot.startFlywheels()
+        } else {
+            robot.stopFlywheels()
         }
         if (gamepad2.left_stick_button) {
             robot.fire()
@@ -81,7 +79,6 @@ open class BraveNewWorld : OpMode() {
         if (gamepad2.x) {
             robot.stopIntake()
         }
-        extendLoop()
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y)
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x)
         telemetry.addData("turn", "%.2f\n------------", gamepad1.left_stick_x)
