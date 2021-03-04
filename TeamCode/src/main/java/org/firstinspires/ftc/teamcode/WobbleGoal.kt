@@ -63,23 +63,18 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun zero() {
-        val forwardInches = 65.0
-        val turnLeftInches = 80.0
-        val leftInches = 18.0
+        val forwardInches = 70.0
+        val rightInches = 40.0
 
         driveForward(inches = forwardInches)
-        turnLeft(inches = turnLeftInches)
-        driveLeft(inches = leftInches)
+        turnRight(inches = rightInches)
         drop()
     }
 
     private fun one() {
-        val sideInches = 36.0
         val forwardInches = 100.0
 
-        driveLeft(inches = sideInches)
         driveForward(inches = forwardInches)
-        driveRight(inches = sideInches)
         drop()
     }
 
@@ -112,12 +107,6 @@ class WobbleGoal : LinearOpMode() {
         robot.brake()
     }
 
-    private fun turnLeft(power: Double = 1.0, inches: Double) {
-        robot.chassis(doubleArrayOf(0.0, 0.0, -1.0 * power))
-        sleepInches(inches)
-        robot.brake()
-    }
-
     private fun turnRight(power: Double = 1.0, inches: Double) {
         robot.chassis(doubleArrayOf(0.0, 0.0, power))
         sleepInches(inches)
@@ -130,14 +119,9 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun drop() {
-        /*robot.armPower(-1.0)
-        sleep(1000)
-        robot.openClaw()
-        sleep(1000)
-        robot.armPower(1.0)
-        robot.closeClaw()
-        sleep(1000)
-         */
+        robot.openClamp()
+        robot.startIntake()
+        sleep(3000)
     }
 
     /**
@@ -159,9 +143,11 @@ class WobbleGoal : LinearOpMode() {
         val tfodParameters = TFObjectDetector.Parameters(tfodMonitorViewId)
         tfodParameters.minResultConfidence = 0.6f
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia)
-        tfod!!.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
-        tfod!!.setZoom(ZOOM, 16.0 / 9.0)
-        tfod!!.activate()
+        tfod!!.apply {
+            this.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
+            this.setZoom(ZOOM, 16.0 / 9.0)
+            this.activate()
+        }
     }
 
     companion object {

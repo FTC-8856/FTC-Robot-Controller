@@ -63,7 +63,7 @@ import java.util.*
  *
  * There is a calibration status register available [...] that returns the calibration status
  * of the accelerometer (ACC), magnetometer (MAG), gyroscope (GYR), and overall system (SYS).
- * Each of these values range from 0 (uncalibrated) to 3 (fully calibrated). Calibration [ideally]
+ * Each of these values range from 0 (uncalibrated) to 3 (fully calibrated). Calibration ideally
  * involves certain motions to get all 4 values at 3. The motions are as follows (though see the
  * datasheet for more information):
  *

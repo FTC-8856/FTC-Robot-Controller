@@ -1,23 +1,20 @@
 package org.firstinspires.ftc.teamcode
 
-import android.graphics.Color
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import com.qualcomm.robotcore.hardware.Gamepad
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Position
 import kotlin.math.max
 
 @TeleOp(name = "Brave New World", group = "Pushbot")
 open class BraveNewWorld : OpMode() {
-    val robot = RobotHardware() // use the class created to define a Pushbot's hardware
-    private var changed = true
+    private val robot = RobotHardware() // use the class created to define a Pushbot's hardware
+    private var locked = true
 
     open fun extendInit() {}
-    open fun extendLoop() {}
     open fun extendStop() {}
 
-    var maxCurrent = 0.0
+    private var maxCurrent = 0.0
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -56,14 +53,19 @@ open class BraveNewWorld : OpMode() {
     override fun loop() {
         robot.hardwareLoop()
         robot.chassis(doubleArrayOf(-gamepad1.right_stick_y.toDouble(), gamepad1.right_stick_x.toDouble(), gamepad1.left_stick_x.toDouble()))
-        robot.armPower(gamepad2.left_stick_y.toDouble())
+        if (!locked) {
+            robot.armPower(gamepad2.left_stick_y.toDouble())
+        }
         if (gamepad2.right_bumper) {
             robot.openClaw()
         } else {
             robot.closeClaw()
         }
         if (gamepad2.left_bumper) {
-            robot.armAtStartup()
+            if (!locked) {
+                robot.armAtStartup()
+            }
+            locked = !locked
         }
         if (gamepad2.right_stick_button) {
             robot.startFlywheels()
@@ -82,11 +84,11 @@ open class BraveNewWorld : OpMode() {
         if (gamepad2.x) {
             robot.stopIntake()
         }
-        if(gamepad2.left_trigger < 0.5){
-            maxCurrent = max(maxCurrent, robot.flywheelCurrentDraw())
+        maxCurrent = if(gamepad2.left_trigger < 0.5){
+            max(maxCurrent, robot.flywheelCurrentDraw())
         }
         else{
-            maxCurrent = 0.0
+            0.0
         }
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y)
         telemetry.addData("strafe", "%.2f", gamepad1.right_stick_x)

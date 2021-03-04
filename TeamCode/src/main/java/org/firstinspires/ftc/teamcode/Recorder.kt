@@ -20,7 +20,7 @@ class Recorder : BraveNewWorld() {
         Gamepad.GamepadCallback { // Add new callback to when any event is fired on the gamepads
             if (it.id == gamepad1.id) { // Just record gamepad1 for now
                 val timestamp = System.currentTimeMillis() - startTimestamp
-                var tempGamepad = Gamepad()
+                val tempGamepad = Gamepad()
                 tempGamepad.copy(gamepad1) // Copy gamepad state
                 tempGamepad.timestamp = timestamp // Replace timestamp with our absolute stamp
                 actionsList.add(tempGamepad.toByteArray()) // Add it to the list

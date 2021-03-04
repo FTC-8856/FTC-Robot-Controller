@@ -29,7 +29,9 @@
 package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.hardware.bosch.BNO055IMU
-import com.qualcomm.robotcore.hardware.*
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.Servo
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation
@@ -38,7 +40,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity
 import org.openftc.revextensions2.ExpansionHubEx
 import org.openftc.revextensions2.ExpansionHubMotor
 import java.util.*
-import kotlin.math.roundToInt
 
 /**
  * This is NOT an opmode.
@@ -52,14 +53,14 @@ class RobotHardware  /* Constructor */ {
     private var isImuEnabled = false
     var imu: BNO055IMU? = null
         private set
-    var pos: Position? = null
+    private var pos: Position? = null
         private set
     var rot: Orientation? = null
         private set
     private var intake: DcMotor? = null
-    /*private*/ var wobble: Servo? = null
+    var wobble: Servo? = null
     private var wobbleFinger: Servo? = null
-    //private var greg: ColorSensor? = null
+    var clamp: Servo? = null
     private var leftFlywheel: DcMotor? = null
     private var leftFlyMonitor: ExpansionHubMotor? = null
     private var rightFlywheel: DcMotor? = null
@@ -84,6 +85,7 @@ class RobotHardware  /* Constructor */ {
         leftFlywheel = ahwMap.get(DcMotor::class.java, "leftflywheel")
         rightFlywheel = ahwMap.get(DcMotor::class.java, "rightflywheel")
         shooter = ahwMap.get(Servo::class.java, "shooter")
+        clamp = ahwMap.get(Servo::class.java, "clamp")
 
         // Power Monitors (thanks OpenFTC)
         leftFlyMonitor = leftFlywheel as ExpansionHubMotor
@@ -131,6 +133,7 @@ class RobotHardware  /* Constructor */ {
         // Set all motors to zero power
         brake()
         closeClaw()
+        closeClamp()
         shooter?.position= SHOOTER_IN
         armAtStartup()
     }
@@ -157,14 +160,10 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun chassis(joystick: DoubleArray) {
-        if (joystick.contentEquals(doubleArrayOf(0.0, 0.0, 0.0))) {
-            brake()
-        } else {
             for ((motor, values) in motorMap) {
                 val power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2]
                 motor.power = power.coerceAtMost(1.0).coerceAtLeast(-1.0)
             }
-        }
     }
 
     fun closeClaw() {
@@ -173,6 +172,14 @@ class RobotHardware  /* Constructor */ {
 
     fun openClaw() {
         wobbleFinger?.position = OPEN_CLAW
+    }
+
+    fun closeClamp() {
+        clamp?.position = CLOSE_CLAMP
+    }
+
+    fun openClamp() {
+        clamp?.position = OPEN_CLAMP
     }
 
     fun armAtStartup() {
@@ -212,10 +219,6 @@ class RobotHardware  /* Constructor */ {
         rightFlywheel?.power = 0.0
     }
 
-    fun areFlywheelsRunning(): Boolean {
-        return leftFlywheel!!.power > 0.2
-    }
-
     fun brake() {
         chassis(doubleArrayOf(0.0, 0.0, 0.0))
     }
@@ -227,9 +230,11 @@ class RobotHardware  /* Constructor */ {
     companion object {
         private const val CLOSE_CLAW = 0.65
         private const val OPEN_CLAW = 0.0
-        private const val ARM_IN = 0.14
+        private const val CLOSE_CLAMP = 0.0
+        private const val OPEN_CLAMP = 0.65
+        private const val ARM_IN = 0.95
         private const val ARM_MID = 0.6
-        private const val ARM_OUT = 0.9
+        private const val ARM_OUT = 0.14
         const val INCHES_PER_SECOND = 52.5
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0
