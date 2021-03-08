@@ -84,10 +84,9 @@ open class BraveNewWorld : OpMode() {
         if (gamepad2.x) {
             robot.stopIntake()
         }
-        maxCurrent = if(gamepad2.left_trigger < 0.5){
+        maxCurrent = if (gamepad2.left_trigger < 0.5) {
             max(maxCurrent, robot.flywheelCurrentDraw())
-        }
-        else{
+        } else {
             0.0
         }
         telemetry.addData("fwd/bkwd", "%.2f", gamepad1.right_stick_y)

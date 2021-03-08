@@ -26,7 +26,7 @@ class WobbleGoal : LinearOpMode() {
         }
     }
 
-    private fun getRecognition() : Int {
+    private fun getRecognition(): Int {
         val recognitions = tfod!!.recognitions
         if (recognitions.isEmpty()) {
             tfod!!.shutdown()

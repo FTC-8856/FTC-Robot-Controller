@@ -134,7 +134,7 @@ class RobotHardware  /* Constructor */ {
         brake()
         closeClaw()
         closeClamp()
-        shooter?.position= SHOOTER_IN
+        shooter?.position = SHOOTER_IN
         armAtStartup()
     }
 
@@ -160,10 +160,10 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun chassis(joystick: DoubleArray) {
-            for ((motor, values) in motorMap) {
-                val power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2]
-                motor.power = power.coerceAtMost(1.0).coerceAtLeast(-1.0)
-            }
+        for ((motor, values) in motorMap) {
+            val power = values[0] * joystick[0] + values[1] * joystick[1] + values[2] * joystick[2]
+            motor.power = power.coerceAtMost(1.0).coerceAtLeast(-1.0)
+        }
     }
 
     fun closeClaw() {
@@ -209,6 +209,7 @@ class RobotHardware  /* Constructor */ {
         Thread.sleep(1000)
         shooter?.position = SHOOTER_IN
     }
+
     fun startFlywheels() {
         leftFlywheel?.power = FLY1_POWER
         rightFlywheel?.power = FLY2_POWER
@@ -224,7 +225,7 @@ class RobotHardware  /* Constructor */ {
     }
 
     fun flywheelCurrentDraw(): Double {
-        return(leftFlyMonitor!!.getCurrentDraw(AMPS) + rightFlyMonitor!!.getCurrentDraw(AMPS))
+        return (leftFlyMonitor!!.getCurrentDraw(AMPS) + rightFlyMonitor!!.getCurrentDraw(AMPS))
     }
 
     companion object {
