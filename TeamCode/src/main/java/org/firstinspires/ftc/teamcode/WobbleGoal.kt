@@ -130,7 +130,8 @@ class WobbleGoal : LinearOpMode() {
     private fun initVuforia() {
         val parameters = VuforiaLocalizer.Parameters()
         parameters.vuforiaLicenseKey = VUFORIA_KEY
-        parameters.cameraName = robot.webcam
+        parameters.cameraName = robot.webcam!!
+        telemetry.addData("webcam", robot.webcam!!.isAttached)
         vuforia = ClassFactory.getInstance().createVuforia(parameters)
     }
 
@@ -143,11 +144,9 @@ class WobbleGoal : LinearOpMode() {
         val tfodParameters = TFObjectDetector.Parameters(tfodMonitorViewId)
         tfodParameters.minResultConfidence = 0.6f
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia)
-        tfod!!.apply {
-            this.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
-            this.setZoom(ZOOM, 16.0 / 9.0)
-            this.activate()
-        }
+        tfod!!.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
+        tfod!!.setZoom(ZOOM, 16.0 / 9.0)
+        tfod!!.activate()
     }
 
     companion object {

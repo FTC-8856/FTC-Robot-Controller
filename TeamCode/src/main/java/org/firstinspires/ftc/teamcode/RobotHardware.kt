@@ -119,8 +119,6 @@ class RobotHardware  /* Constructor */ {
             imu?.initialize(imuParameters)
         }
 
-        // Do the OpenCV initialization if it is asked for
-        // We will have to have this commented out until we figure out how to get the webcam on the hardware map
         webcam = ahwMap.get(WebcamName::class.java, "gregcam")
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG

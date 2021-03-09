@@ -9,7 +9,13 @@ class ParkOnLine : LinearOpMode() {
         val robot = RobotHardware()
         robot.init(hardwareMap, "")
         waitForStart()
-        robot.chassis(doubleArrayOf(0.0, 0.0, 0.0))
+        robot.chassis(doubleArrayOf(1.0, 0.0, 0.0))
+        sleepInches(60.0)
+        robot.brake()
+    }
+
+    private fun sleepInches(inches: Double) {
+        sleep((inches / (RobotHardware.INCHES_PER_SECOND / 1000)).toLong())
     }
 
 }
