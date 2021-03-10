@@ -16,8 +16,19 @@ class WobbleGoal : LinearOpMode() {
         robot.init(hardwareMap, "")
         initVuforia()
         initTfod()
-        telemetry.addData("Waiting", null)
-        val recognized = getRecognition()
+
+        var recognized = 0
+
+            val updatedRecognized = getRecognition()
+            if (updatedRecognized != recognized) {
+                recognized = updatedRecognized
+                telemetry.addData("Rings:", recognized)
+            } else {
+                telemetry.addData("No new recognitions", null)
+            }
+            telemetry.update()
+        tfod!!.shutdown()
+
         waitForStart()
         when (recognized) {
             0 -> zero()
@@ -27,36 +38,24 @@ class WobbleGoal : LinearOpMode() {
     }
 
     private fun getRecognition(): Int {
-        val recognitions = tfod!!.recognitions
+        val recognitions = tfod!!.updatedRecognitions!!
         if (recognitions.isEmpty()) {
-            tfod!!.shutdown()
-
-            telemetry.addData("Rings:", "Zero (no recognitions found)")
-            telemetry.update()
-
             return 0
         } else {
             var oneConfidence = 0.0
             var fourConfidence = 0.0
             for (recognition in recognitions) {
-                val confidence = recognition.confidence.toDouble()
-                if (recognition.label == LABEL_SECOND_ELEMENT && confidence > oneConfidence) {
+                val confidence = recognition!!.confidence.toDouble()
+                if (recognition.label!! == LABEL_SECOND_ELEMENT && confidence > oneConfidence) {
                     oneConfidence = confidence
                 }
-                if (recognition.label == LABEL_FIRST_ELEMENT && confidence > fourConfidence) {
+                if (recognition.label!! == LABEL_FIRST_ELEMENT && confidence > fourConfidence) {
                     fourConfidence = confidence
                 }
             }
-            tfod!!.shutdown()
             return if (fourConfidence < oneConfidence) {
-                telemetry.addData("Rings:", "One")
-                telemetry.update()
-
                 1
             } else {
-                telemetry.addData("Rings:", "Four")
-                telemetry.update()
-
                 4
             }
         }
@@ -130,23 +129,21 @@ class WobbleGoal : LinearOpMode() {
     private fun initVuforia() {
         val parameters = VuforiaLocalizer.Parameters()
         parameters.vuforiaLicenseKey = VUFORIA_KEY
-        parameters.cameraName = robot.webcam!!
-        telemetry.addData("webcam", robot.webcam!!.isAttached)
-        vuforia = ClassFactory.getInstance().createVuforia(parameters)
+        parameters.cameraName = hardwareMap!!.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName::class.java, "gregcam")!!
+        vuforia = ClassFactory.getInstance()!!.createVuforia(parameters)!!
     }
 
     /**
      * Initialize the TensorFlow Object Detection engine.
      */
     private fun initTfod() {
-        val tfodMonitorViewId = hardwareMap.appContext.resources.getIdentifier(
+        val tfodMonitorViewId = hardwareMap!!.appContext!!.resources!!.getIdentifier(
                 "tfodMonitorViewId", "id", hardwareMap.appContext.packageName)
         val tfodParameters = TFObjectDetector.Parameters(tfodMonitorViewId)
-        tfodParameters.minResultConfidence = 0.6f
-        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia)
+        tfod = ClassFactory.getInstance()!!.createTFObjectDetector(tfodParameters, vuforia)!!
         tfod!!.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT)
-        tfod!!.setZoom(ZOOM, 16.0 / 9.0)
         tfod!!.activate()
+        telemetry.addData("tfod recognitions", tfod!!.recognitions)
     }
 
     companion object {
@@ -154,6 +151,5 @@ class WobbleGoal : LinearOpMode() {
         private const val LABEL_FIRST_ELEMENT = "Quad"
         private const val LABEL_SECOND_ELEMENT = "Single"
         private const val VUFORIA_KEY = "AUAWFpz/////AAABmVwtdR5e/EuYge3oIRmKWEsX1ls1SEgysmAKbYVf8clIR74ciZ7+ucQX+zdIHUmJKWSbIBsZsJpXPgDONKCMYc2Ybsg4Wy7362azDSVNBmZEtKSeEVFG7d2NKTTsiJgX3KkQE75T0TYXcaxc5A/CIgQ63d9Xv/vmN5ytCt4Lkur9sB3ZyTnSUNbn3b3e0H+tt0mHYeksYP/+CRL7WlOSXyz02VRf7AqlzT62V7VXSbkWzWx3EwC7y5Oe7vQ/MLAO+e7fgOaybwZyO4bFVreLY/2pojB2ciMg2Sb8eyIjsLvMXAfPCOwpY3OkWsvFWuZxR5gdfvNGC0q57H3xpFHpXHv9sG1KPJTxL9MROn3KfNtd"
-        private const val ZOOM = 1.9
     }
 }

@@ -46,8 +46,6 @@ import java.util.*
  */
 class RobotHardware  /* Constructor */ {
     private val motorMap: MutableMap<DcMotor, Array<Double>> = HashMap()
-    var webcam: WebcamName? = null
-        private set
 
     /* IMU public variables */
     private var isImuEnabled = false
@@ -118,8 +116,6 @@ class RobotHardware  /* Constructor */ {
             // Initialize IMU.
             imu?.initialize(imuParameters)
         }
-
-        webcam = ahwMap.get(WebcamName::class.java, "gregcam")
 
         //         CHASSIS MOTOR POWER & DIRECTION CONFIG
         //                              F/B    L/R   TURN
@@ -234,7 +230,7 @@ class RobotHardware  /* Constructor */ {
         private const val ARM_IN = 0.95
         private const val ARM_MID = 0.6
         private const val ARM_OUT = 0.14
-        const val INCHES_PER_SECOND = 52.5
+        const val INCHES_PER_SECOND = 32.0
         private const val FLY1_POWER = 1.0
         private const val FLY2_POWER = -1.0
         private const val SHOOTER_IN = 2.75

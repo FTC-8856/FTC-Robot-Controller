@@ -54,7 +54,7 @@ open class BraveNewWorld : OpMode() {
         robot.hardwareLoop()
         robot.chassis(doubleArrayOf(-gamepad1.right_stick_y.toDouble(), gamepad1.right_stick_x.toDouble(), gamepad1.left_stick_x.toDouble()))
         if (!locked) {
-            robot.armPower(gamepad2.left_stick_y.toDouble())
+            robot.armPower(-gamepad2.left_stick_y.toDouble())
         }
         if (gamepad2.right_bumper) {
             robot.openClaw()
